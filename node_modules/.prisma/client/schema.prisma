@@ -1,0 +1,76 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id          Int    @id @default(autoincrement())
+  nombre      String
+  correo      String @unique
+  contraseña String
+  rol         Int
+
+  empresa Empresa?
+  pasante Pasante?
+  admin   Admin?
+}
+
+model Admin {
+  id        Int     @id @default(autoincrement())
+  usuarioId Int     @unique
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+}
+
+model Pasante {
+  id           Int      @id @default(autoincrement())
+  usuarioId    Int      @unique
+  especialidad String?
+  estado       String   @default("disponible")
+  cv           String?
+  creadoEn     DateTime @default(now())
+
+  postulante Postulante[]
+  usuario    Usuario      @relation(fields: [usuarioId], references: [id])
+}
+
+model Empresa {
+  id           Int      @id @default(autoincrement())
+  usuarioId    Int      @unique
+  direccion    String   @unique
+  telefono     Int
+  especialidad String
+  creadoEn     DateTime @default(now())
+
+  vacantes Vacante[]
+  usuario  Usuario   @relation(fields: [usuarioId], references: [id])
+}
+
+model Vacante {
+  id          Int      @id @default(autoincrement())
+  titulo      String
+  descripcion String
+  empresaId   Int
+  empresa     Empresa  @relation(fields: [empresaId], references: [id])
+  estado      String   @default("abierto")
+  creadoEn    DateTime @default(now())
+
+  postulante Postulante[]
+}
+
+model Postulante {
+  id        Int      @id @default(autoincrement())
+  vacanteId Int
+  pasanteId Int
+  estado    String   @default("pendiente")
+  fechaPost DateTime @default(now())
+
+  vacante Vacante @relation(fields: [vacanteId], references: [id])
+  pasante Pasante @relation(fields: [pasanteId], references: [id])
+
+  @@unique([vacanteId, pasanteId])
+}
