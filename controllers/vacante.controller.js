@@ -26,22 +26,38 @@ const obtenerVacantes = async (req, res) => {
 }
 
 const modificarVacante = async (req, res) => {
-    //if(req.user.id == vacante.empresaId){
-        try{
-            const vacante = await prisma.vacante.update({
-                where: { id: Number(req.params.id)},
-                data: req.body,
-            });
-            res.json(vacante)
-        }
-        catch(error){
-            res.status(400).json({ mensaje: "Hubo un error al  modificar la vacante", error});
-        }
-    //}
+    try{
+        const vacante = await prisma.vacante.update({
+            where: { id: Number(req.params.id)},
+            data: req.body,
+        });
+        res.json(vacante)
+    }
+    catch(error){
+        res.status(400).json({ mensaje: "Hubo un error al  modificar la vacante", error});
+    }
+}
+
+const cambiarEstadoVacante = async (req, res) => {
+    try{
+        const { estado } = req.body;
+        if (!["abierta", "cerrada"].includes(estado)) {
+        return res.status(400).json({ mensaje: "Estado inválido" });
+    }
+        const vacante = await prisma.vacante.update({
+            where: { 
+                id: Number(req.params.id),
+                empresaId: req.body.id //verifica que la empresa dueña de esta vacante sea la que se modifique  
+            },
+            data: {estado: req.body.estado}    
+        })
+        res.json(vacante)
+    }catch(error){
+        res.status(400).json({ mensaje: "Hubo un error al  modificar la vacante", error});
+    }
 }
 
 const eliminarVacante = async (req, res) => {
-    //if(req.user.id == vacante.empresaId){
         try{
             const vacante = await prisma.vacante.delete({
                 where : { id: Number( req.params.id )}
@@ -51,12 +67,12 @@ const eliminarVacante = async (req, res) => {
         catch(error){
             res.status(400).json({ mensaje: "Ha sucedido un error al querer eliminar la vacante", error});
         }
-    //}
 }
 
 module.exports = {
     crearVacantes,
     obtenerVacantes,
     modificarVacante,
+    cambiarEstadoVacante,
     eliminarVacante,
 };

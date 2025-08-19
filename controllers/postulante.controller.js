@@ -36,9 +36,7 @@ const buscarPorPasante = async (req, res) => {
 const crearPostulacion = async (req, res) => {
     try {
         const vacante = await prisma.vacante.findUnique({
-            where: {
-                id: Number(req.params.id)
-            }
+            where: { id: Number(req.params.id) }
         })
         if (vacante) {
             const postulacion = await prisma.postulante.create({
@@ -62,7 +60,7 @@ const crearPostulacion = async (req, res) => {
 const eliminarPostulacion = async (req, res) => {
     try{
         const postulacion = await prisma.postulante.delete({
-            where : { id: req.params.id }
+            where : { id: Number(req.params.id) }
         })
         res.status(200).json({ mensaje: "Se elimino la postulacion" });
     }catch(error){
