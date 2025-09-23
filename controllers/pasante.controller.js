@@ -8,7 +8,15 @@ const secretKey = process.env.SECRET_KEY;
 
 const obtenerPasantes = async (req, res) => {
   try {
-    const pasantes = await prisma.pasante.findMany();
+    const pasantes = await prisma.pasante.findMany({
+      include: {
+        usuario: {
+          select: {
+            nombre: true
+          }
+        }
+      }
+    });
     res.json(pasantes);
   } catch (error) {
     res.status(500).json({ mensaje: "Error al obtener pasantes", error });
@@ -17,24 +25,26 @@ const obtenerPasantes = async (req, res) => {
 
 const crearPasante = async (req, res) => {
   try {
-    const {nombre, constraseña, correo, especialidad} = req.body
+    const {nombre, contraseña, correo, especialidad} = req.body
 
-    const hashedPassword = await bcrypt.hash(constraseña, 10);
-
-    const Usuario = await prisma.usuario.create ({
+    const hashedPassword = await bcrypt.hash(contraseña, 10);
+    console.log("paso 1");
+    const usuario = await prisma.usuario.create ({
       data: {
         nombre,
         correo,
         contraseña: hashedPassword,
-        rol: 1
+        rol: 3
       }
     })
+    console.log("paso 2");
     const nuevoPasante = await prisma.pasante.create({
       data: {
         especialidad,
         usuarioId: usuario.id,
       }
     });
+    console.log("paso 3")
     res.status(201).json(nuevoPasante);
   } catch (error) {
     res.status(400).json({ mensaje: "Error al crear pasante", error });
