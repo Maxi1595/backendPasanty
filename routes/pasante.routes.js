@@ -2,10 +2,12 @@
 const express = require('express');
 const router = express.Router();
 const upload = require("../middlewares/multer");
-const { obtenerPasantes, crearPasante, actualizarPasante, eliminarPasante, subirCV } = require('../controllers/pasante.controller');
+const { obtenerPasantes, obtenerPasantesPorId, crearPasante, actualizarPasante, eliminarPasante, subirCV } = require('../controllers/pasante.controller');
 
 // GET /api/pasantes → Obtener todos los pasantes
 router.get('/', obtenerPasantes);
+
+router.get('/:id', obtenerPasantesPorId);
 
 // POST /api/pasantes → Crear un nuevo pasante
 router.post('/', crearPasante);

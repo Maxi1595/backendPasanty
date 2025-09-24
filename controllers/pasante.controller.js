@@ -23,13 +23,34 @@ const obtenerPasantes = async (req, res) => {
   }
 };
 
+const obtenerPasantesPorId = async (req, res) => {
+  try {
+    const pasante = await prisma.pasante.findUnique({
+      where: { id: Number(req.params.id) },
+      include: {
+        usuario: {
+          select: {
+            nombre: true  
+          }
+        }
+      }
+    });
+    if(pasante === null){
+      return res.status(404).json({ mensaje: "no se encontro el pasante"});
+    }
+    res.json(pasante);
+  } catch (error) {
+    res.status(500).json({ mensaje: "error al obtener el pasante", error});
+  }
+}
+
 const crearPasante = async (req, res) => {
   try {
-    const {nombre, contraseña, correo, especialidad} = req.body
+    const { nombre, contraseña, correo, especialidad } = req.body
 
     const hashedPassword = await bcrypt.hash(contraseña, 10);
     console.log("paso 1");
-    const usuario = await prisma.usuario.create ({
+    const usuario = await prisma.usuario.create({
       data: {
         nombre,
         correo,
@@ -52,28 +73,28 @@ const crearPasante = async (req, res) => {
 };
 
 const actualizarPasante = async (req, res) => {
-    try{
-        const pasante = await prisma.pasante.update({
-          where: { id: Number(req.params.id) },
-          data:req.body,  
-        });
-        res.json(pasante)
-    }
-    catch(error){
-        res.status(400).json({ mensaje: "Error al actualizar el pasante", error});
-    }
+  try {
+    const pasante = await prisma.pasante.update({
+      where: { id: Number(req.params.id) },
+      data: req.body,
+    });
+    res.json(pasante)
+  }
+  catch (error) {
+    res.status(400).json({ mensaje: "Error al actualizar el pasante", error });
+  }
 }
 
 const eliminarPasante = async (req, res) => {
-    try{
-        const pasante = await prisma.pasante.delete({
-            where: { id: Number( req.params.id) },
-        })
-        res.json(pasante);
-    }
-    catch (error){
-        res.status(400).json({ mensaje: "Error al eliminar el pasante", error});
-    }
+  try {
+    const pasante = await prisma.pasante.delete({
+      where: { id: Number(req.params.id) },
+    })
+    res.json(pasante);
+  }
+  catch (error) {
+    res.status(400).json({ mensaje: "Error al eliminar el pasante", error });
+  }
 }
 
 const subirCV = async (req, res) => {
@@ -97,6 +118,7 @@ const subirCV = async (req, res) => {
 
 module.exports = {
   obtenerPasantes,
+  obtenerPasantesPorId,
   crearPasante,
   actualizarPasante,
   eliminarPasante,
