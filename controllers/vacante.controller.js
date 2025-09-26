@@ -25,6 +25,17 @@ const obtenerVacantes = async (req, res) => {
     }
 }
 
+const obtenerVacantePorId = async (req, res) => {
+    try{
+        const vacante = await prisma.vacante.findUnique({
+            where: { id: Number(req.params.id) }
+        });
+        res.json(vacante);
+    }catch(error){
+        res.status(500).json({ mensaje: "error al encontrar vacantes", error})
+    }
+}
+
 const modificarVacante = async (req, res) => {
     try{
         const vacante = await prisma.vacante.update({
@@ -72,6 +83,7 @@ const eliminarVacante = async (req, res) => {
 module.exports = {
     crearVacantes,
     obtenerVacantes,
+    obtenerVacantePorId,
     modificarVacante,
     cambiarEstadoVacante,
     eliminarVacante,
