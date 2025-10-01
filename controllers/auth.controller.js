@@ -60,7 +60,13 @@ const loginEmpresa = async (req, res) => {
       rol: usuario.rol
     }, secretKey, { expiresIn: '1h' });
 
-    res.json({ mensaje: 'Inicio de sesión exitoso', usuario, token });
+    res.json({ mensaje: 'Inicio de sesión exitoso',
+      user: {
+        username: usuario.nombre,
+        correo: usuario.correo,
+        rol: usuario.rol
+      }, 
+      token });
   } catch (error) {
     console.error(error);
     res.status(500).json({ mensaje: 'Error al iniciar sesión', error });
