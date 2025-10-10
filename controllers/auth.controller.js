@@ -6,6 +6,43 @@ require('dotenv').config();
 const secretKey = process.env.SECRET_KEY;
 
 // Registro
+
+const registrarPasante = async (req, res) => {
+  try {
+    const { nombre, contraseña, correo, especialidad } = req.body;
+
+    const existe = await prisma.usuario.findUnique({ where: { correo } });
+    if (existe) return res.status(400).json({ mensaje: 'Ya existe una cuenta con ese correo' });
+
+    const hashedPassword = await bcrypt.hash(contraseña, 10);
+
+    const usuario = await prisma.usuario.create({
+      data: {
+        nombre,
+        correo,
+        contraseña: hashedPassword,
+        rol: 3
+      }
+    })
+
+    const nuevoPasante = await prisma.pasante.create({
+      data: {
+        especialidad,
+        usuarioId: usuario.id,
+      }
+    });
+
+    res.status(201).json({ mensaje: 'Pasante registrada con éxito', pasante: nuevoPasante });
+  } catch (error) {
+    if (error.code === "P2002") {
+      res.status(400).json({ mensaje: "Correo o dirección ya en uso" });
+    } else {
+      res.status(500).json({ mensaje: "Error en el registro", error });
+    }
+  }
+};
+
+
 const registrarEmpresa = async (req, res) => {
   try {
     const { nombre, correo, contraseña, direccion, telefono, especialidad } = req.body;
@@ -27,7 +64,7 @@ const registrarEmpresa = async (req, res) => {
     const nuevaEmpresa = await prisma.empresa.create({
       data: {
         direccion,
-        telefono,
+        telefono: Number(telefono),
         especialidad,
         usuarioId: usuario.id
       },
@@ -44,7 +81,7 @@ const registrarEmpresa = async (req, res) => {
 };
 
 // Login
-const loginEmpresa = async (req, res) => {
+const login = async (req, res) => {
   try {
     const { correo, contraseña } = req.body;
 
@@ -60,17 +97,19 @@ const loginEmpresa = async (req, res) => {
       rol: usuario.rol
     }, secretKey, { expiresIn: '1h' });
 
-    res.json({ mensaje: 'Inicio de sesión exitoso',
+    res.json({
+      mensaje: 'Inicio de sesión exitoso',
       user: {
         username: usuario.nombre,
         correo: usuario.correo,
         rol: usuario.rol
-      }, 
-      token });
+      },
+      token
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ mensaje: 'Error al iniciar sesión', error });
   }
 };
 
-module.exports = { registrarEmpresa, loginEmpresa };
+module.exports = { registrarPasante, registrarEmpresa, login };

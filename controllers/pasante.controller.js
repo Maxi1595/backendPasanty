@@ -44,33 +44,33 @@ const obtenerPasantesPorId = async (req, res) => {
   }
 }
 
-const crearPasante = async (req, res) => {
-  try {
-    const { nombre, contraseña, correo, especialidad } = req.body
+// const crearPasante = async (req, res) => {
+//   try {
+//     const { nombre, contraseña, correo, especialidad } = req.body
 
-    const hashedPassword = await bcrypt.hash(contraseña, 10);
-    console.log("paso 1");
-    const usuario = await prisma.usuario.create({
-      data: {
-        nombre,
-        correo,
-        contraseña: hashedPassword,
-        rol: 3
-      }
-    })
-    console.log("paso 2");
-    const nuevoPasante = await prisma.pasante.create({
-      data: {
-        especialidad,
-        usuarioId: usuario.id,
-      }
-    });
-    console.log("paso 3")
-    res.status(201).json(nuevoPasante);
-  } catch (error) {
-    res.status(400).json({ mensaje: "Error al crear pasante", error });
-  }
-};
+//     const hashedPassword = await bcrypt.hash(contraseña, 10);
+//     console.log("paso 1");
+//     const usuario = await prisma.usuario.create({
+//       data: {
+//         nombre,
+//         correo,
+//         contraseña: hashedPassword,
+//         rol: 3
+//       }
+//     })
+//     console.log("paso 2");
+//     const nuevoPasante = await prisma.pasante.create({
+//       data: {
+//         especialidad,
+//         usuarioId: usuario.id,
+//       }
+//     });
+//     console.log("paso 3")
+//     res.status(201).json(nuevoPasante);
+//   } catch (error) {
+//     res.status(400).json({ mensaje: "Error al crear pasante", error });
+//   }
+// };
 
 const actualizarPasante = async (req, res) => {
   try {
@@ -119,7 +119,7 @@ const subirCV = async (req, res) => {
 module.exports = {
   obtenerPasantes,
   obtenerPasantesPorId,
-  crearPasante,
+  // crearPasante,
   actualizarPasante,
   eliminarPasante,
   subirCV,

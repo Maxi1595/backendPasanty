@@ -10,7 +10,7 @@ router.get('/', obtenerPasantes);
 router.get('/:id', obtenerPasantesPorId);
 
 // POST /api/pasantes → Crear un nuevo pasante
-router.post('/', crearPasante);
+// router.post('/', crearPasante);
 
 //agregar autorizacion de rol
 router.put('/:id', actualizarPasante);

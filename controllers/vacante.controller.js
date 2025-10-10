@@ -49,7 +49,7 @@ const modificarVacante = async (req, res) => {
     }
 }
 
-const cambiarEstadoVacante = async (req, res) => {
+const cambiarEstadoVacante = async (req, res) => { //no se ha agregado
     try{
         const { estado } = req.body;
         if (!["abierta", "cerrada"].includes(estado)) {
@@ -85,6 +85,6 @@ module.exports = {
     obtenerVacantes,
     obtenerVacantePorId,
     modificarVacante,
-    cambiarEstadoVacante,
+    cambiarEstadoVacante, //no se ha agregado
     eliminarVacante,
 };
