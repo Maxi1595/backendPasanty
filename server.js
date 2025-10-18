@@ -27,5 +27,8 @@ app.use('/api/auth', authRoutes);
 const vacanteRoutes = require('./routes/vacante.routes');
 app.use('/api/vacante', vacanteRoutes);
 
-const postulanteRoutes = require('./routes/postulantes.routes')
+const postulanteRoutes = require('./routes/postulantes.routes');
 app.use('/api/postulantes', postulanteRoutes);
+
+const usuarioRoutes = require('./routes/usuario.routes');
+app.use('/api/usuario', usuarioRoutes);
