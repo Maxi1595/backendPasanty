@@ -6,6 +6,9 @@ const bcrypt = require('bcrypt');
 require('dotenv').config();
 const secretKey = process.env.SECRET_KEY;
 
+const path = require('path');
+
+
 const obtenerPasantes = async (req, res) => {
   try {
     const pasantes = await prisma.pasante.findMany({
@@ -30,17 +33,17 @@ const obtenerPasantesPorId = async (req, res) => {
       include: {
         usuario: {
           select: {
-            nombre: true  
+            nombre: true
           }
         }
       }
     });
-    if(pasante === null){
-      return res.status(404).json({ mensaje: "no se encontro el pasante"});
+    if (pasante === null) {
+      return res.status(404).json({ mensaje: "no se encontro el pasante" });
     }
     res.json(pasante);
   } catch (error) {
-    res.status(500).json({ mensaje: "error al obtener el pasante", error});
+    res.status(500).json({ mensaje: "error al obtener el pasante", error });
   }
 }
 
@@ -98,7 +101,7 @@ const eliminarPasante = async (req, res) => {
 }
 
 const subirCV = async (req, res) => {
-  const pasanteId = parseInt(req.params.id);
+  const pasanteId = parseInt(req.user.id);
   if (!req.file) {
     return res.status(400).json({ mensaje: "No se subió ningún archivo" });
   }
@@ -106,7 +109,7 @@ const subirCV = async (req, res) => {
   try {
     const rutaCV = req.file.path;
     const pasanteActualizado = await prisma.pasante.update({
-      where: { id: pasanteId },
+      where: { usuarioId: pasanteId },
       data: { cv: rutaCV }
     });
 
@@ -116,6 +119,21 @@ const subirCV = async (req, res) => {
   }
 };
 
+const verCV = async (req, res) => {
+  try {
+    const pasante = await prisma.pasante.findUnique({
+      where: { usuarioId: Number(req.user.id) },
+      select: { cv: true }
+    })
+
+    const CV = path.resolve(__dirname, '..', pasante.cv);
+
+    return res.sendFile(CV);
+  } catch (error) {
+    return res.status(404).json({ mensaje: "no se encontro el CV", error });
+  }
+}
+
 module.exports = {
   obtenerPasantes,
   obtenerPasantesPorId,
@@ -123,4 +141,5 @@ module.exports = {
   actualizarPasante,
   eliminarPasante,
   subirCV,
+  verCV,
 };

@@ -141,10 +141,27 @@ const actualizarEstado = async (req, res) => {
 
 const buscarEstado = async (req, res) => {
     try {
-        const postulacion = await prisma.postulante.findMany({
-            where: { pasanteId: req.user.id }
+        const pasante = await prisma.pasante.findUnique({
+            where: { usuarioId: req.user.id },
+            select: { id: true }
         })
-        res.status(200).json({ postulacion });
+
+        if(!pasante){
+            return res.status(404).json({ mensaje: "No se encontró un pasante asociado a este usuario" });
+        }
+
+        const postulacion = await prisma.postulante.findMany({
+            where: { pasanteId: pasante.id },
+            include: {
+                vacante: {
+                    select: {
+                        titulo: true,
+                        descripcion: true
+                    }
+                }
+            }
+        })
+        res.json(postulacion);
     } catch (error) {
         res.status(404).json({ mensaje: "No se ha encontrado ninguna postulacion, postulece a alguna vacante" });
     }
