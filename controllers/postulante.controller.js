@@ -16,20 +16,25 @@ const buscarPorVacante = async (req, res) => {
         const empresaId = req.user.id;
 
         const postulaciones = await prisma.postulante.findMany({
-            where: { 
+            where: {
                 vacante: {
                     empresaId: empresaId
                 }
             },
             include: {
-                pasante:{
-                    include:{
+                pasante: {
+                    include: {
                         usuario: {
                             select: {
                                 nombre: true,
                                 correo: true
                             }
                         }
+                    }
+                },
+                vacante: {
+                    select: {
+                        titulo: true
                     }
                 }
             }
@@ -54,12 +59,12 @@ const buscarPorPasante = async (req, res) => {
 const buscarPostulacionPorId = async (req, res) => {
     try {
         const postulacion = await prisma.postulante.findUnique({
-            where: { id: Number(req.params.id)},
+            where: { id: Number(req.params.id) },
             include: {
                 pasante: {
                     include: {
-                        usuario: { 
-                            select:{
+                        usuario: {
+                            select: {
                                 nombre: true,
                                 correo: true
                             }
@@ -67,7 +72,7 @@ const buscarPostulacionPorId = async (req, res) => {
                     }
                 },
                 vacante: {
-                    select:{
+                    select: {
                         estado: true,
                         empresaId: true
                     }
@@ -76,8 +81,8 @@ const buscarPostulacionPorId = async (req, res) => {
         })
 
         res.json(postulacion);
-    }catch (error){
-        res.status(404).json({ mensaje: "No se ha encontrado esa postulacion"})
+    } catch (error) {
+        res.status(404).json({ mensaje: "No se ha encontrado esa postulacion" })
     }
 }
 
@@ -146,7 +151,7 @@ const buscarEstado = async (req, res) => {
             select: { id: true }
         })
 
-        if(!pasante){
+        if (!pasante) {
             return res.status(404).json({ mensaje: "No se encontró un pasante asociado a este usuario" });
         }
 
