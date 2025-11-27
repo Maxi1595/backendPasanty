@@ -2,7 +2,7 @@
 generator client {
   provider = "prisma-client-js"
 }
-
+  
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -12,7 +12,7 @@ model Usuario {
   id          Int    @id @default(autoincrement())
   nombre      String
   correo      String @unique
-  contraseña String
+  contrasena String
   rol         Int
 
   empresa Empresa?
@@ -42,7 +42,7 @@ model Empresa {
   id           Int      @id @default(autoincrement())
   usuarioId    Int      @unique
   direccion    String   @unique
-  telefono     Int
+  telefono     String
   especialidad String
   creadoEn     DateTime @default(now())
 

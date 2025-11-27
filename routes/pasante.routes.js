@@ -2,8 +2,8 @@
 const express = require('express');
 const router = express.Router();
 const upload = require("../middlewares/multer");
-const { obtenerPasantes, obtenerPasantesPorId, actualizarPasante, eliminarPasante, subirCV, verCV } = require('../controllers/pasante.controller');
-const { verificarToken } = require('../middlewares/auth.middleware');
+const { obtenerPasantes, obtenerPasantesPorId, actualizarPasante, eliminarPasante, subirCV, verCV, verPropioCV } = require('../controllers/pasante.controller');
+const { verificarToken, verificarRol } = require('../middlewares/auth.middleware');
 
 // GET /api/pasantes → Obtener todos los pasantes
 router.get('/buscar', obtenerPasantes);
@@ -22,6 +22,8 @@ router.delete('/:id', eliminarPasante);
 //agregar autorizacion de rol
 router.post('/subir-cv',verificarToken, upload.single('cv'), subirCV);
 
-router.get('/cv', verificarToken, verCV);
+router.get('/propio-cv', verificarToken, verPropioCV);
+
+router.get('/cv/:id', verificarToken, verificarRol(5), verCV)
 
 module.exports = router;
