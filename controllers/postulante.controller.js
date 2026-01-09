@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const path = require('path');
 
 //mostrara todos sin excepciones
 const verPorstulantes = async (req, res) => {
@@ -13,13 +14,16 @@ const verPorstulantes = async (req, res) => {
 //mostrara solo los que estan para la vacante x
 const buscarPorVacante = async (req, res) => {
     try {
-        const empresaId = req.user.id;
+        const empresa = await prisma.empresa.findUnique({
+            where: { usuarioId: req.user.id }
+        });
 
         const postulaciones = await prisma.postulante.findMany({
             where: {
                 vacante: {
-                    empresaId: empresaId
-                }
+                    empresaId: empresa.id
+                },
+                estado: "pendiente"
             },
             include: {
                 pasante: {
@@ -95,9 +99,6 @@ const crearPostulacion = async (req, res) => {
             where: { usuarioId: req.user.id },
             select: { id: true }
         })
-        console.log("Vacante:", vacante);
-        console.log("Pasante:", pasante);
-        console.log("req.user.id:", req.user?.id);
 
         if (vacante && pasante) {
             const postulante = await prisma.postulante.create({
@@ -137,7 +138,13 @@ const actualizarEstado = async (req, res) => {
             where: { id: Number(req.params.id) },
             data: { estado: req.body.estado }
         })
-        console.log(req.body);
+
+        if (req.body.estado === "Aceptado") {
+            const vacante = await prisma.vacante.update({
+                where: { id: postulante.vacanteId },
+                data: { estado: "cerrado" }
+            })
+        }
         res.status(200).json({ mensaje: `Se ha ${req.body.estado} la postulacion` })
     } catch (error) {
         res.status(400).json({ mensaje: "Ha sucedido un error al actualizar el estado de la postulacion" })
@@ -172,6 +179,44 @@ const buscarEstado = async (req, res) => {
     }
 }
 
+const verCVPorPostulacion = async (req, res) => {
+    try {
+        const postulacionId = Number(req.params.id);
+
+        const postulacion = await prisma.postulante.findUnique({
+            where: { id: postulacionId },
+            select: { pasanteId: true }
+        });
+
+        if (!postulacion) {
+            return res.status(404).json({ mensaje: "No existe esa postulación" });
+        }
+
+        const pasante = await prisma.pasante.findUnique({
+            where: { id: postulacion.pasanteId },
+            select: { cv: true }
+        });
+
+        if (!pasante.cv) {
+            return res.status(404).json({ mensaje: "El pasante todavia no ha subido su CV" });
+        }
+
+        if (!pasante) {
+            return res.status(404).json({ mensaje: "No se encontró ningún pasante con ese ID" });
+        }
+
+        const CV = path.resolve(__dirname, '..', pasante.cv);
+
+        return res.sendFile(CV);
+    } catch (error) {
+        return res.status(500).json({
+            mensaje: "Error al obtener el CV",
+            error: error.message,
+            stack: error.stack
+        });
+    }
+}
+
 module.exports = {
     verPorstulantes,
     buscarPorVacante,
@@ -180,5 +225,6 @@ module.exports = {
     crearPostulacion,
     eliminarPostulacion,
     actualizarEstado,
-    buscarEstado
+    buscarEstado,
+    verCVPorPostulacion
 }

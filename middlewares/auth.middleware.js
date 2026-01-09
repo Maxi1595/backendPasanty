@@ -22,7 +22,7 @@ const verificarToken = (req, res, next) => {
     function verificarRol (rol) {
         return async (req, res, next) => {
             const nivelRol = req.user?.rol;
-            if(nivelRol >= rol){
+            if(nivelRol == rol){ //se puede poner mayor o igual, por ahora permanece en igual
                 return next();
             } else {
                 return res.status(403).json({ mensaje: "No esta autorizado para hacer esta accion"});

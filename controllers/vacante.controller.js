@@ -1,13 +1,15 @@
 const {PrismaClient} = require('@prisma/client');
 const prisma = new PrismaClient();
-const { verificarRol } = require ('../middlewares/auth.middleware');
 
 const crearVacantes = async (req, res) => {
     try{
+        const empresa = await prisma.empresa.findUnique({
+            where: { usuarioId: Number(req.user.id) }
+        })
         const nuevaVacante = await prisma.vacante.create({
             data: {
                 ...req.body,
-                empresaId: req.user.id,
+                   empresaId: empresa.id,
             }
         });
         res.status(201).json({mensaje: "se creo un nuevo vacante", vacante: nuevaVacante});
@@ -18,7 +20,9 @@ const crearVacantes = async (req, res) => {
 
 const obtenerVacantes = async (req, res) => {
     try{
-        const vacantes = await prisma.vacante.findMany();
+        const vacantes = await prisma.vacante.findMany({
+            where: { estado: "abierto"}
+        });
         res.json(vacantes);
     }catch(error){
         res.status(400).json({ mensaje: "No hay ninguna vacante", error});

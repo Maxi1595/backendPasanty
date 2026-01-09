@@ -33,7 +33,8 @@ const obtenerPasantesPorId = async (req, res) => {
       include: {
         usuario: {
           select: {
-            nombre: true
+            nombre: true,
+            correo: true
           }
         }
       }
@@ -49,15 +50,15 @@ const obtenerPasantesPorId = async (req, res) => {
 
 // const crearPasante = async (req, res) => {
 //   try {
-//     const { nombre, contraseña, correo, especialidad } = req.body
+//     const { nombre, contrasena, correo, especialidad } = req.body
 
-//     const hashedPassword = await bcrypt.hash(contraseña, 10);
+//     const hashedPassword = await bcrypt.hash(contrasena, 10);
 //     console.log("paso 1");
 //     const usuario = await prisma.usuario.create({
 //       data: {
 //         nombre,
 //         correo,
-//         contraseña: hashedPassword,
+//         contrasena: hashedPassword,
 //         rol: 3
 //       }
 //     })
@@ -119,12 +120,16 @@ const subirCV = async (req, res) => {
   }
 };
 
-const verCV = async (req, res) => {
+const verPropioCV = async (req, res) => {
   try {
     const pasante = await prisma.pasante.findUnique({
       where: { usuarioId: Number(req.user.id) },
       select: { cv: true }
     })
+
+    if (!pasante.cv){
+      return res.status(404).json({ mensaje: "Aun no subes tu CV" });
+    }
 
     const CV = path.resolve(__dirname, '..', pasante.cv);
 
@@ -134,6 +139,34 @@ const verCV = async (req, res) => {
   }
 }
 
+const verCV = async (req, res) => {
+  try {
+    const pasante = await prisma.pasante.findUnique({
+      where: { id: Number(req.params.id) },
+      select: { cv: true }
+    })
+
+    if(!pasante.cv){
+      return res.status(404).json({ mensaje: "El pasante todavia no ha subido su CV"});
+    }
+
+    if (!pasante) {
+      return res.status(404).json({ mensaje: "No se encontró ningún pasante con ese ID" });
+    }
+
+    const CV = path.resolve(__dirname, '..', pasante.cv);
+
+    return res.sendFile(CV);
+  } catch (error) {
+    return res.status(500).json({
+      mensaje: "Error al obtener el CV",
+      error: error.message,
+      stack: error.stack
+    });
+  }
+}
+
+
 module.exports = {
   obtenerPasantes,
   obtenerPasantesPorId,
@@ -141,5 +174,6 @@ module.exports = {
   actualizarPasante,
   eliminarPasante,
   subirCV,
+  verPropioCV,
   verCV,
 };

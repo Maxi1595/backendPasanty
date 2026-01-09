@@ -9,18 +9,18 @@ const secretKey = process.env.SECRET_KEY;
 
 const registrarPasante = async (req, res) => {
   try {
-    const { nombre, contraseña, correo, especialidad } = req.body;
+    const { nombre, contrasena, correo, especialidad } = req.body;
 
     const existe = await prisma.usuario.findUnique({ where: { correo } });
     if (existe) return res.status(400).json({ mensaje: 'Ya existe una cuenta con ese correo' });
 
-    const hashedPassword = await bcrypt.hash(contraseña, 10);
+    const hashedPassword = await bcrypt.hash(contrasena, 10);
 
     const usuario = await prisma.usuario.create({
       data: {
         nombre,
         correo,
-        contraseña: hashedPassword,
+        contrasena: hashedPassword,
         rol: 3
       }
     })
@@ -45,18 +45,22 @@ const registrarPasante = async (req, res) => {
 
 const registrarEmpresa = async (req, res) => {
   try {
-    const { nombre, correo, contraseña, direccion, telefono, especialidad } = req.body;
-
+    const { nombre, correo, contrasena, direccion, telefono, especialidad } = req.body;
+    
     const existe = await prisma.usuario.findUnique({ where: { correo } });
     if (existe) return res.status(400).json({ mensaje: 'Ya existe una cuenta con ese correo' });
 
-    const hashedPassword = await bcrypt.hash(contraseña, 10);
+    const hashedPassword = await bcrypt.hash(contrasena, 10);
+
+    if (!telefono || telefono.trim() === "") {
+      return res.status(400).json({ mensaje: "El teléfono es obligatorio" });
+    }
 
     const usuario = await prisma.usuario.create({
       data: {
         nombre,
         correo,
-        contraseña: hashedPassword,
+        contrasena: hashedPassword,
         rol: 5
       }
     })
@@ -64,7 +68,7 @@ const registrarEmpresa = async (req, res) => {
     const nuevaEmpresa = await prisma.empresa.create({
       data: {
         direccion,
-        telefono: Number(telefono),
+        telefono: telefono,
         especialidad,
         usuarioId: usuario.id
       },
@@ -83,13 +87,13 @@ const registrarEmpresa = async (req, res) => {
 // Login
 const login = async (req, res) => {
   try {
-    const { correo, contraseña } = req.body;
+    const { correo, contrasena } = req.body;
 
     const usuario = await prisma.usuario.findUnique({ where: { correo } });
     if (!usuario) return res.status(400).json({ mensaje: 'Correo no registrado' });
 
-    const contraseñaValida = await bcrypt.compare(contraseña, usuario.contraseña);
-    if (!contraseñaValida) return res.status(401).json({ mensaje: 'Contraseña incorrecta' });
+    const contrasenaValida = await bcrypt.compare(contrasena, usuario.contrasena);
+    if (!contrasenaValida) return res.status(401).json({ mensaje: 'Contraseña incorrecta' });
 
     const token = jwt.sign({
       username: usuario.correo,
