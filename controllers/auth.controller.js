@@ -4,6 +4,7 @@ const prisma = new PrismaClient();
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const secretKey = process.env.SECRET_KEY;
+const { generarAccessToken, generarRefreshToken } = require('../service/auth.service');
 
 // Registro
 
@@ -46,7 +47,7 @@ const registrarPasante = async (req, res) => {
 const registrarEmpresa = async (req, res) => {
   try {
     const { nombre, correo, contrasena, direccion, telefono, especialidad } = req.body;
-    
+
     const existe = await prisma.usuario.findUnique({ where: { correo } });
     if (existe) return res.status(400).json({ mensaje: 'Ya existe una cuenta con ese correo' });
 
@@ -95,25 +96,47 @@ const login = async (req, res) => {
     const contrasenaValida = await bcrypt.compare(contrasena, usuario.contrasena);
     if (!contrasenaValida) return res.status(401).json({ mensaje: 'Contraseña incorrecta' });
 
-    const token = jwt.sign({
-      username: usuario.correo,
-      id: usuario.id,
-      rol: usuario.rol
-    }, secretKey, { expiresIn: '1h' });
+    const tokenAccess = await generarAccessToken(usuario);
+    const tokenRefresh = await generarRefreshToken(usuario);
 
-    res.json({
-      mensaje: 'Inicio de sesión exitoso',
+    return res.json({
       user: {
         username: usuario.nombre,
         correo: usuario.correo,
         rol: usuario.rol
       },
-      token
+      tokenAccess,
+      tokenRefresh
     });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ mensaje: 'Error al iniciar sesión', error });
   }
 };
 
-module.exports = { registrarPasante, registrarEmpresa, login };
+const refresh = async (req, res) => {
+  try {
+    const { tokenRefresh } = req.body;
+    if (!tokenRefresh) {
+      return res.status(401).json({ mensaje: "no se envio nada, reenvie el tokenrefresh por favor" })
+    }
+
+    const token = jwt.verify(tokenRefresh, secretKey);
+
+    const user = await prisma.usuario.findFirst({ where: { id: token.id } })
+    if (!user) {
+      return res.status(403).json({ mensaje: "No se encontro al usuario" })
+    }
+
+    const tokenAccessNuevo = await generarAccessToken(user);
+    const tokenRefreshNuevo = await generarRefreshToken(user);
+
+    return res.status(200).json({ tokenAccessNuevo, tokenRefreshNuevo });
+
+  } catch (error) {
+    return res.status(500).json({ mensaje: "Error al refrescar token", error });
+  }
+}
+
+module.exports = { registrarPasante, registrarEmpresa, login, refresh };
