@@ -129,10 +129,10 @@ const refresh = async (req, res) => {
       return res.status(403).json({ mensaje: "No se encontro al usuario" })
     }
 
-    const tokenAccessNuevo = await generarAccessToken(user);
-    const tokenRefreshNuevo = await generarRefreshToken(user);
+    const tokenAccess = await generarAccessToken(user);
 
-    return res.status(200).json({ tokenAccessNuevo, tokenRefreshNuevo });
+
+    return res.status(200).json({ tokenAccess });
 
   } catch (error) {
     return res.status(500).json({ mensaje: "Error al refrescar token", error });
