@@ -1,23 +1,32 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const path = require('path');
+const { traerEmpresaPorId } = require('../service/empresa.service');
+const { traerPostulantes } = require('../service/postulante.service');
+const { successResponse, errorResponse } = require('../utils/response');
+const { empty } = require('@prisma/client/runtime/library');
 
 //mostrara todos sin excepciones
 const verPorstulantes = async (req, res) => {
     try {
-        const postulaciones = await prisma.postulante.findMany();
-        res.json(postulaciones);
+        const postulaciones = traerPostulantes();
+        
+        if (object.key(postulaciones).length === 0){
+            return errorResponse (res, "No existen postulaciones", 404);
+        }
+
+        return successResponse(res, postulaciones, 200);
+        
     } catch (error) {
-        res.status(500).json({ mensaje: "No se encontraron postulaciones" });
+        return errorResponse(res, "No se encontraron postulaciones", 500);
     }
 }
+
 //mostrara solo los que estan para la vacante x
 const buscarPorVacante = async (req, res) => {
     try {
-        const empresa = await prisma.empresa.findUnique({
-            where: { usuarioId: req.user.id }
-        });
-
+        const empresa = traerEmpresaPorId (req.user.id);
+        
         const postulaciones = await prisma.postulante.findMany({
             where: {
                 vacante: {

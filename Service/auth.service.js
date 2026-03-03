@@ -8,7 +8,7 @@ const generarAccessToken = async (usuario) => {
         username: usuario.correo, //borrar?
         id: usuario.id,
         rol: usuario.rol
-    }, secretKey, { expiresIn: '1m' });
+    }, secretKey, { expiresIn: '30m' });
 
     return token;
 }
