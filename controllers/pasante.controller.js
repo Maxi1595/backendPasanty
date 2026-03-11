@@ -26,7 +26,7 @@ const obtenerPasantesPorId = async (req, res) => {
     if (pasante === null || !pasante) {
       return errorResponse(res, "no se encontro el pasante", 404);
     }
-    return successResponse(res, pasante, 200);
+    return res.status(200).json(pasante);
   } catch (error) {
     return errorResponse(res, "error al traer al pasante", 500);
   }
