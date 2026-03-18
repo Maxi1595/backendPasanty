@@ -4,7 +4,10 @@ const prisma = new PrismaClient();
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const secretKey = process.env.SECRET_KEY;
-const { generarAccessToken, generarRefreshToken } = require('../service/auth.service');
+const { generarAccessToken, generarRefreshToken, crearUsuario } = require('../service/auth.service');
+const { crearEmpresa } = require('../service/empresa.service');
+const { crearPasante } = require('../service/pasante.service');
+const { successResponse, errorResponse } = require('../utils/response');
 
 // Registro
 
@@ -17,28 +20,16 @@ const registrarPasante = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(contrasena, 10);
 
-    const usuario = await prisma.usuario.create({
-      data: {
-        nombre,
-        correo,
-        contrasena: hashedPassword,
-        rol: 3
-      }
-    })
+    const usuario = await crearUsuario(nombre, correo, hashedPassword, 3);
 
-    const nuevoPasante = await prisma.pasante.create({
-      data: {
-        especialidad,
-        usuarioId: usuario.id,
-      }
-    });
+    const nuevoPasante = await crearPasante(especialidad, usuario.id);
 
-    res.status(201).json({ mensaje: 'Pasante registrada con éxito', pasante: nuevoPasante });
+    return successResponse(res, nuevoPasante, 201);
   } catch (error) {
     if (error.code === "P2002") {
-      res.status(400).json({ mensaje: "Correo o dirección ya en uso" });
+      return errorResponse(res, "Correo o dirección ya en uso", 400);
     } else {
-      res.status(500).json({ mensaje: "Error en el registro", error });
+      return errorResponse(res, error, 500);
     }
   }
 };
@@ -57,30 +48,16 @@ const registrarEmpresa = async (req, res) => {
       return res.status(400).json({ mensaje: "El teléfono es obligatorio" });
     }
 
-    const usuario = await prisma.usuario.create({
-      data: {
-        nombre,
-        correo,
-        contrasena: hashedPassword,
-        rol: 5
-      }
-    })
+    const usuario = await crearUsuario(nombre, correo, hashedPassword, 5);
 
-    const nuevaEmpresa = await prisma.empresa.create({
-      data: {
-        direccion,
-        telefono: telefono,
-        especialidad,
-        usuarioId: usuario.id
-      },
-    });
+    const nuevaEmpresa = await crearEmpresa(direccion, telefono, especialidad, usuario.id)
 
-    res.status(201).json({ mensaje: 'Empresa registrada con éxito', empresa: nuevaEmpresa });
+    return successResponse(res, nuevaEmpresa, 201);
   } catch (error) {
     if (error.code === "P2002") {
-      res.status(400).json({ mensaje: "Correo o dirección ya en uso" });
+      return errorResponse(res, "Correo o dirección ya en uso", 400);
     } else {
-      res.status(500).json({ mensaje: "Error en el registro", error });
+      return errorResponse(res, error, 500);
     }
   }
 };
@@ -121,21 +98,21 @@ const refresh = async (req, res) => {
     if (!tokenRefresh) {
       return res.status(401).json({ mensaje: "no se envio nada, reenvie el tokenrefresh por favor" })
     }
-
+    
     const token = jwt.verify(tokenRefresh, secretKey);
-
+    
     const user = await prisma.usuario.findFirst({ where: { id: token.id } })
+    
     if (!user) {
       return res.status(403).json({ mensaje: "No se encontro al usuario" })
     }
-
+    
     const tokenAccess = await generarAccessToken(user);
-
 
     return res.status(200).json({ tokenAccess });
 
   } catch (error) {
-    return res.status(500).json({ mensaje: "Error al refrescar token", error });
+    return res.status(401).json({ mensaje: "Error al refrescar token", error });
   }
 }
 

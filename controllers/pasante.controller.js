@@ -26,7 +26,7 @@ const obtenerPasantesPorId = async (req, res) => {
     if (pasante === null || !pasante) {
       return errorResponse(res, "no se encontro el pasante", 404);
     }
-    return res.status(200).json(pasante);
+    return successResponse(res, pasante, 200);
   } catch (error) {
     return errorResponse(res, "error al traer al pasante", 500);
   }
@@ -34,7 +34,7 @@ const obtenerPasantesPorId = async (req, res) => {
 
 const actualizarPasante = async (req, res) => {
   try {
-    cambiarPasante(req.params.id , req.body)
+    cambiarPasante(req.params.id, req.body)
     return successResponse(res, "Se ha actualizado el pasante", 200)
   }
   catch (error) {
@@ -52,19 +52,22 @@ const eliminarPasante = async (req, res) => {
   }
 }
 
+
+//Cambiarlos para el service
+
 const subirCV = async (req, res) => {
   const pasanteId = parseInt(req.user.id);
   if (!req.file) {
     return res.status(400).json({ mensaje: "No se subió ningún archivo" });
   }
-  
+
   try {
     const rutaCV = req.file.path;
     const pasanteActualizado = await prisma.pasante.update({
       where: { usuarioId: pasanteId },
       data: { cv: rutaCV }
     });
-    
+
     res.status(200).json({ mensaje: "CV subido exitosamente", pasante: pasanteActualizado });
   } catch (error) {
     res.status(500).json({ mensaje: "Error al subir el CV", error });
@@ -77,13 +80,13 @@ const verPropioCV = async (req, res) => {
       where: { usuarioId: Number(req.user.id) },
       select: { cv: true }
     })
-    
+
     if (!pasante.cv) {
       return res.status(404).json({ mensaje: "Aun no subes tu CV" });
     }
-    
+
     const CV = path.resolve(__dirname, '..', pasante.cv);
-    
+
     return res.sendFile(CV);
   } catch (error) {
     return res.status(404).json({ mensaje: "no se encontro el CV", error });
@@ -96,17 +99,17 @@ const verCV = async (req, res) => {
       where: { id: Number(req.params.id) },
       select: { cv: true }
     })
-    
+
     if (!pasante.cv) {
       return res.status(404).json({ mensaje: "El pasante todavia no ha subido su CV" });
     }
-    
+
     if (!pasante) {
       return res.status(404).json({ mensaje: "No se encontró ningún pasante con ese ID" });
     }
-    
+
     const CV = path.resolve(__dirname, '..', pasante.cv);
-    
+
     return res.sendFile(CV);
   } catch (error) {
     return res.status(500).json({
@@ -117,38 +120,10 @@ const verCV = async (req, res) => {
   }
 }
 
-// const crearPasante = async (req, res) => {
-//   try {
-//     const { nombre, contrasena, correo, especialidad } = req.body
-
-//     const hashedPassword = await bcrypt.hash(contrasena, 10);
-//     console.log("paso 1");
-//     const usuario = await prisma.usuario.create({
-//       data: {
-//         nombre,
-//         correo,
-//         contrasena: hashedPassword,
-//         rol: 3
-//       }
-//     })
-//     console.log("paso 2");
-//     const nuevoPasante = await prisma.pasante.create({
-//       data: {
-//         especialidad,
-//         usuarioId: usuario.id,
-//       }
-//     });
-//     console.log("paso 3")
-//     res.status(201).json(nuevoPasante);
-//   } catch (error) {
-//     res.status(400).json({ mensaje: "Error al crear pasante", error });
-//   }
-// };
 
 module.exports = {
   obtenerPasantes,
   obtenerPasantesPorId,
-  // crearPasante,
   actualizarPasante,
   eliminarPasante,
   subirCV,

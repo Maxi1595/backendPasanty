@@ -7,9 +7,22 @@ const traerEmpresas = async () => {
     return empresas;
 }
 
-const traerEmpresaPorId = async () => {
+const traerEmpresaPorId = async (id) => {
     const empresa = await prisma.empresa.findUnique({
-        where: { id: Number(id) }
+        where: { usuarioId: Number(id) }
+    })
+
+    return empresa;
+}
+
+const crearEmpresa = async (direccion, telefono, especialidad, id) => {
+    const empresa = await prisma.empresa.create({
+        data: {
+            direccion: direccion,
+            telefono: telefono,
+            especialidad: especialidad,
+            usuarioId: id
+        }
     })
 
     return empresa;
@@ -18,4 +31,5 @@ const traerEmpresaPorId = async () => {
 module.exports = {
     traerEmpresas,
     traerEmpresaPorId,
+    crearEmpresa,
 }

@@ -15,7 +15,17 @@ const traerVacantePorId = async (id) => {
     return vacante;
 }
 
+const cerrarVacante = async (id) => {
+    const vacante = await prisma.vacante.update({
+        where: { id: id },
+        data: { estado: "cerrado" }
+    })
+
+    return vacante
+}
+
 module.exports = {
     traerVacantes,
     traerVacantePorId,
+    cerrarVacante,
 }

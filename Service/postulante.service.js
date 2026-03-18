@@ -71,9 +71,54 @@ const traerPostulacionPorPasante = async (id) => {
     return postulacion;
 }
 
+const traerPorEstado = async (pasante) => {
+    const postulacion = await prisma.postulante.findMany({
+        where: { pasanteId: pasante.id },
+        include: {
+            vacante: {
+                select: {
+                    titulo: true,
+                    descripcion: true
+                }
+            }
+        }
+    })
+
+    return postulacion;
+}
+
+const postPostulacion = async (pasante, vacante) => {
+    const postulacion = await prisma.postulante.create({
+        data: {
+            pasanteId: Number(pasante),
+            vacanteId: Number(vacante)
+        }
+    })
+    return postulacion;
+}
+
+const borrarPostulacion = async (id) => {
+    const postulacion = await prisma.postulacion.create({
+        where: { id: Number(id) }
+    })
+}
+
+const cambiarEstado = async (id, estado) => {
+    const postulacion = await prisma.postulante.update({
+        where: { id: Number(id) },
+        data: { estado: estado }
+    })
+    
+    return postulacion;
+}
+
 module.exports = {
     traerPostulantes,
     traerPostulacionPorId,
     traerPostulacionPorVacante,
     traerPostulacionPorPasante,
+    traerPorEstado,
+    postPostulacion,
+    borrarPostulacion,
+    cambiarEstado,
 }

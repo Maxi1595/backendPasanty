@@ -37,15 +37,29 @@ const cambiarPasante = async (id, data) => {
     return actualizacion;
 }
 
+const crearPasante = async (especialidad, id) => {
+    const pasante = await prisma.pasante.create({
+        data: {
+            especialidad: especialidad,
+            usuarioId: id
+        }
+    })
+
+    return pasante;
+}
+
 const borrarPasante = async (id) => {
     const pasante = await prisma.pasante.delete({
         where: { id: Number(id) }
     })
+
+    return pasante;
 }
 
 module.exports = {
     traerPasantes,
     trearPasantePorId,
     cambiarPasante,
-    borrarPasante
+    crearPasante,
+    borrarPasante,
 }
