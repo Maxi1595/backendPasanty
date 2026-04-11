@@ -4,6 +4,8 @@ const cors = require('cors')
 const dotenv = require('dotenv');
 const pasanteRoutes = require('./routes/pasante.routes');
 
+const errorHandler = require('./middlewares/error.middleware')
+
 dotenv.config();
 
 const app = express();
@@ -32,3 +34,6 @@ app.use('/api/postulantes', postulanteRoutes);
 
 const usuarioRoutes = require('./routes/usuario.routes');
 app.use('/api/usuario', usuarioRoutes);
+
+
+app.use(errorHandler);

@@ -21,15 +21,9 @@ const obtenerPasantes = async (req, res) => {
 };
 
 const obtenerPasantesPorId = async (req, res) => {
-  try {
     const pasante = await trearPasantePorId(req.params.id);
-    if (pasante === null || !pasante) {
-      return errorResponse(res, "no se encontro el pasante", 404);
-    }
+
     return successResponse(res, pasante, 200);
-  } catch (error) {
-    return errorResponse(res, "error al traer al pasante", 500);
-  }
 }
 
 const actualizarPasante = async (req, res) => {

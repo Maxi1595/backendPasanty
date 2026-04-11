@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+const notFound = require('../handler/error.notfound');
 const prisma = new PrismaClient();
 
 const traerPasantes = async () => {
@@ -26,6 +27,11 @@ const trearPasantePorId = async (id) => {
             }
         }
     });
+
+    if (pasante === null || !pasante) {
+        throw new notFound("pasante no encontrado");
+    }
+    
     return pasante;
 }
 
