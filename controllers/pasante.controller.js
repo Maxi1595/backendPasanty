@@ -12,12 +12,9 @@ const { traerPasantes, trearPasantePorId, cambiarPasante, borrarPasante } = requ
 
 
 const obtenerPasantes = async (req, res) => {
-  try {
     const pasantes = await traerPasantes();
+
     return successResponse(res, pasantes, 200);
-  } catch (error) {
-    return errorResponse(res, "Error al obtener pasantes", 500);
-  }
 };
 
 const obtenerPasantesPorId = async (req, res) => {
@@ -27,23 +24,15 @@ const obtenerPasantesPorId = async (req, res) => {
 }
 
 const actualizarPasante = async (req, res) => {
-  try {
     cambiarPasante(req.params.id, req.body)
+
     return successResponse(res, "Se ha actualizado el pasante", 200)
-  }
-  catch (error) {
-    return errorResponse(res, "Error al actualizar el pasante", 500)
-  }
 }
 
 const eliminarPasante = async (req, res) => {
-  try {
-    borrarPasante(req.params.id);
+    const pasante = await borrarPasante(req.params.id);
+
     return successResponse(res, "Se ha eliminado el pasante", 200)
-  }
-  catch (error) {
-    return errorResponse(res, "Error al eliminar el pasante", 500)
-  }
 }
 
 
