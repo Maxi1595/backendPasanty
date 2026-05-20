@@ -1,9 +1,16 @@
 const AppError = require("../handler/app.error");
+const PrismaErrores = require('../handler/prisma.error');
+const { PrismaClientKnownRequestError } = require('@prisma/client/runtime/library');
+const Logger = require("../utils/logger");
 
 const errorHandler = (err, req, res, next) => {
-    console.error(err)
-    
-    if (err instanceof AppError){
+    Logger.error(err)
+
+    if (err instanceof PrismaClientKnownRequestError) {
+        err = PrismaErrores(err);
+    }
+
+    if (err instanceof AppError) {
         return res.status(err.status).json({
             error: {
                 code: err.code,
@@ -18,8 +25,6 @@ const errorHandler = (err, req, res, next) => {
             message: 'Error interno del servidor'
         }
     });
-    
-    next();
 }
 
 module.exports = errorHandler;
