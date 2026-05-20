@@ -1,9 +1,8 @@
-const { PrismaClient } = require('@prisma/client');
-const notFound = require('../handler/error.notfound');
-const prisma = new PrismaClient();
+const {PrismaSingleton} = require('../prisma/prisma.client');
+const NotFound = require('../handler/error.notfound');
 
 const traerPasantes = async () => {
-    const pasantes = await prisma.pasante.findMany({
+    const pasantes = await PrismaSingleton.pasante.findMany({
         include: {
             usuario: {
                 select: {
@@ -12,11 +11,16 @@ const traerPasantes = async () => {
             }
         }
     })
+
+    if (pasantes === null || !pasantes) {
+        throw new NotFound("postulaciones no encontradas");
+    }
+
     return pasantes;
 }
 
 const trearPasantePorId = async (id) => {
-    const pasante = await prisma.pasante.findUnique({
+    const pasante = await PrismaSingleton.pasante.findUnique({
         where: { id: Number(id) },
         include: {
             usuario: {
@@ -28,23 +32,23 @@ const trearPasantePorId = async (id) => {
         }
     });
 
-    if (pasante === null || !pasante) {
-        throw new notFound("pasante no encontrado");
+    if(pasante === null || !pasante){
+        throw new NotFound("postulacion no encontrada");
     }
-    
+
     return pasante;
 }
 
 const cambiarPasante = async (id, data) => {
-    const actualizacion = await prisma.pasante.update({
+    const actualizacion = await PrismaSingleton.pasante.update({
         where: { id: Number(id) },
         data: data
-    });
+    }); 
     return actualizacion;
 }
 
 const crearPasante = async (especialidad, id) => {
-    const pasante = await prisma.pasante.create({
+    const pasante = await PrismaSingleton.pasante.create({
         data: {
             especialidad: especialidad,
             usuarioId: id
@@ -55,7 +59,7 @@ const crearPasante = async (especialidad, id) => {
 }
 
 const borrarPasante = async (id) => {
-    const pasante = await prisma.pasante.delete({
+    const pasante = await PrismaSingleton.pasante.delete({
         where: { id: Number(id) }
     })
 

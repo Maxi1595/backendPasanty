@@ -1,22 +1,30 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient;
+const {PrismaSingleton} = require('../prisma/prisma.client');
+const NotFound = require('../handler/error.notfound');
 
 const traerVacantes = async () => {
-    const vacantes = await prisma.vacante.findMany()
+    const vacantes = await PrismaSingleton.vacante.findMany()
+    
+    if (vacantes === null || !vacantes) {
+        throw new NotFound("postulacion no encontradas");
+    }
 
     return vacantes;
 }
 
 const traerVacantePorId = async (id) => {
-    const vacante = await prisma.vacante.findUnique({
+    const vacante = await PrismaSingleton.vacante.findUnique({
         where: { id: Number(id) },
     })
+
+    if (vacante === null || !vacante) {
+        throw new NotFound("postulacion no encontradas");
+    }
 
     return vacante;
 }
 
 const cerrarVacante = async (id) => {
-    const vacante = await prisma.vacante.update({
+    const vacante = await PrismaSingleton.vacante.update({
         where: { id: id },
         data: { estado: "cerrado" }
     })
