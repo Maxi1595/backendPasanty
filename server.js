@@ -1,39 +1,41 @@
 // server.js
 const express = require('express');
-const cors = require('cors')
+const rateLimit = require('express-rate-limit');
+const cors = require('cors');
 const dotenv = require('dotenv');
-const pasanteRoutes = require('./routes/pasante.routes');
+const helmet = require("helmet");
 
 const errorHandler = require('./middlewares/error.middleware')
+const pasanteRoutes = require('./routes/pasante.routes');
+const authRoutes = require('./routes/auth.routes');
+const vacanteRoutes = require('./routes/vacante.routes');
+const postulanteRoutes = require('./routes/postulantes.routes');
+const usuarioRoutes = require('./routes/usuario.routes');
 
 dotenv.config();
-
 const app = express();
-app.use(express.json());
 
+const limit = rateLimit({
+    windowMs: 60000,
+    message: {error: 'llego demasiadas request'}
+});
+app.use(express.json());
+app.use(helmet());
 app.use(cors({
   origin: 'http://localhost:5173' // aquí pones el origen de tu front
 }));
 
+app.use('/api/', limit);
 // Ruta base para el backend
 app.use('/api/pasantes', pasanteRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/vacante', vacanteRoutes);
+app.use('/api/postulantes', postulanteRoutes);
+app.use('/api/usuario', usuarioRoutes);
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
-
-const authRoutes = require('./routes/auth.routes');
-app.use('/api/auth', authRoutes);
-
-const vacanteRoutes = require('./routes/vacante.routes');
-app.use('/api/vacante', vacanteRoutes);
-
-const postulanteRoutes = require('./routes/postulantes.routes');
-app.use('/api/postulantes', postulanteRoutes);
-
-const usuarioRoutes = require('./routes/usuario.routes');
-app.use('/api/usuario', usuarioRoutes);
-
-
-app.use(errorHandler);
