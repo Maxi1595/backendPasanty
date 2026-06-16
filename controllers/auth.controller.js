@@ -4,89 +4,45 @@ const prisma = new PrismaClient();
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const secretKey = process.env.SECRET_KEY;
+const { generarAccessToken, generarRefreshToken, crearUsuario } = require('../service/auth.service');
+const { crearEmpresa } = require('../service/empresa.service');
+const { crearPasante } = require('../service/pasante.service');
+const { successResponse, errorResponse } = require('../utils/response');
 
 // Registro
 
 const registrarPasante = async (req, res) => {
-  try {
     const { nombre, contrasena, correo, especialidad } = req.body;
 
     const existe = await prisma.usuario.findUnique({ where: { correo } });
-    if (existe) return res.status(400).json({ mensaje: 'Ya existe una cuenta con ese correo' });
 
     const hashedPassword = await bcrypt.hash(contrasena, 10);
 
-    const usuario = await prisma.usuario.create({
-      data: {
-        nombre,
-        correo,
-        contrasena: hashedPassword,
-        rol: 3
-      }
-    })
+    const usuario = await crearUsuario(nombre, correo, hashedPassword, 3);
 
-    const nuevoPasante = await prisma.pasante.create({
-      data: {
-        especialidad,
-        usuarioId: usuario.id,
-      }
-    });
+    const nuevoPasante = await crearPasante(especialidad, usuario.id);
 
-    res.status(201).json({ mensaje: 'Pasante registrada con éxito', pasante: nuevoPasante });
-  } catch (error) {
-    if (error.code === "P2002") {
-      res.status(400).json({ mensaje: "Correo o dirección ya en uso" });
-    } else {
-      res.status(500).json({ mensaje: "Error en el registro", error });
-    }
-  }
+    return successResponse(res, nuevoPasante, 201);
 };
 
 
 const registrarEmpresa = async (req, res) => {
-  try {
     const { nombre, correo, contrasena, direccion, telefono, especialidad } = req.body;
-    
+
     const existe = await prisma.usuario.findUnique({ where: { correo } });
     if (existe) return res.status(400).json({ mensaje: 'Ya existe una cuenta con ese correo' });
 
     const hashedPassword = await bcrypt.hash(contrasena, 10);
 
-    if (!telefono || telefono.trim() === "") {
-      return res.status(400).json({ mensaje: "El teléfono es obligatorio" });
-    }
+    const usuario = await crearUsuario(nombre, correo, hashedPassword, 5);
 
-    const usuario = await prisma.usuario.create({
-      data: {
-        nombre,
-        correo,
-        contrasena: hashedPassword,
-        rol: 5
-      }
-    })
+    const nuevaEmpresa = await crearEmpresa(direccion, telefono, especialidad, usuario.id)
 
-    const nuevaEmpresa = await prisma.empresa.create({
-      data: {
-        direccion,
-        telefono: telefono,
-        especialidad,
-        usuarioId: usuario.id
-      },
-    });
-
-    res.status(201).json({ mensaje: 'Empresa registrada con éxito', empresa: nuevaEmpresa });
-  } catch (error) {
-    if (error.code === "P2002") {
-      res.status(400).json({ mensaje: "Correo o dirección ya en uso" });
-    } else {
-      res.status(500).json({ mensaje: "Error en el registro", error });
-    }
-  }
+    return successResponse(res, nuevaEmpresa, 201);
 };
 
 // Login
 const login = async (req, res) => {
-  try {
     const { correo, contrasena } = req.body;
 
     const usuario = await prisma.usuario.findUnique({ where: { correo } });
@@ -95,25 +51,31 @@ const login = async (req, res) => {
     const contrasenaValida = await bcrypt.compare(contrasena, usuario.contrasena);
     if (!contrasenaValida) return res.status(401).json({ mensaje: 'Contraseña incorrecta' });
 
-    const token = jwt.sign({
-      username: usuario.correo,
-      id: usuario.id,
-      rol: usuario.rol
-    }, secretKey, { expiresIn: '1h' });
+    const tokenAccess = await generarAccessToken(usuario);
+    const tokenRefresh = await generarRefreshToken(usuario);
 
-    res.json({
-      mensaje: 'Inicio de sesión exitoso',
-      user: {
-        username: usuario.nombre,
-        correo: usuario.correo,
-        rol: usuario.rol
-      },
-      token
+    return res.json({
+        user: {
+            id: usuario.id,
+            username: usuario.nombre,
+            correo: usuario.correo,
+            rol: usuario.rol
+        },
+        tokenAccess,
+        tokenRefresh
     });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ mensaje: 'Error al iniciar sesión', error });
-  }
 };
 
-module.exports = { registrarPasante, registrarEmpresa, login };
+const refresh = async (req, res) => {
+    const { tokenRefresh } = req.body;
+
+    const token = jwt.verify(tokenRefresh, secretKey);
+
+    const user = await prisma.usuario.findFirst({ where: { id: token.id } })
+
+    const tokenAccess = await generarAccessToken(user);
+
+    return res.status(200).json({ tokenAccess });
+}
+
+module.exports = { registrarPasante, registrarEmpresa, login, refresh };

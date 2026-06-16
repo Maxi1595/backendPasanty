@@ -1,105 +1,42 @@
 // controllers/pasante.controller.js
 const { PrismaClient } = require('@prisma/client');
-const { json } = require('express');
+const { json, response } = require('express');
 const prisma = new PrismaClient();
 const bcrypt = require('bcrypt');
 require('dotenv').config();
 const secretKey = process.env.SECRET_KEY;
 
 const path = require('path');
+const { successResponse, errorResponse } = require('../utils/response');
+const { traerPasantes, trearPasantePorId, cambiarPasante, borrarPasante, traerCV } = require('../service/pasante.service.js');
 
 
 const obtenerPasantes = async (req, res) => {
-  try {
-    const pasantes = await prisma.pasante.findMany({
-      include: {
-        usuario: {
-          select: {
-            nombre: true
-          }
-        }
-      }
-    });
-    res.json(pasantes);
-  } catch (error) {
-    res.status(500).json({ mensaje: "Error al obtener pasantes", error });
-  }
+    const pasantes = await traerPasantes();
+
+    return successResponse(res, pasantes, 200);
 };
 
 const obtenerPasantesPorId = async (req, res) => {
-  try {
-    const pasante = await prisma.pasante.findUnique({
-      where: { id: Number(req.params.id) },
-      include: {
-        usuario: {
-          select: {
-            nombre: true,
-            correo: true
-          }
-        }
-      }
-    });
-    if (pasante === null) {
-      return res.status(404).json({ mensaje: "no se encontro el pasante" });
-    }
-    res.json(pasante);
-  } catch (error) {
-    res.status(500).json({ mensaje: "error al obtener el pasante", error });
-  }
+    const pasante = await trearPasantePorId(req.params.id);
+
+    return successResponse(res, pasante, 200);
 }
 
-// const crearPasante = async (req, res) => {
-//   try {
-//     const { nombre, contrasena, correo, especialidad } = req.body
-
-//     const hashedPassword = await bcrypt.hash(contrasena, 10);
-//     console.log("paso 1");
-//     const usuario = await prisma.usuario.create({
-//       data: {
-//         nombre,
-//         correo,
-//         contrasena: hashedPassword,
-//         rol: 3
-//       }
-//     })
-//     console.log("paso 2");
-//     const nuevoPasante = await prisma.pasante.create({
-//       data: {
-//         especialidad,
-//         usuarioId: usuario.id,
-//       }
-//     });
-//     console.log("paso 3")
-//     res.status(201).json(nuevoPasante);
-//   } catch (error) {
-//     res.status(400).json({ mensaje: "Error al crear pasante", error });
-//   }
-// };
-
 const actualizarPasante = async (req, res) => {
-  try {
-    const pasante = await prisma.pasante.update({
-      where: { id: Number(req.params.id) },
-      data: req.body,
-    });
-    res.json(pasante)
-  }
-  catch (error) {
-    res.status(400).json({ mensaje: "Error al actualizar el pasante", error });
-  }
+    cambiarPasante(req.params.id, req.body)
+
+    return successResponse(res, "Se ha actualizado el pasante", 200)
 }
 
 const eliminarPasante = async (req, res) => {
-  try {
-    const pasante = await prisma.pasante.delete({
-      where: { id: Number(req.params.id) },
-    })
-    res.json(pasante);
-  }
-  catch (error) {
-    res.status(400).json({ mensaje: "Error al eliminar el pasante", error });
-  }
+    const pasante = await borrarPasante(req.params.id);
+
+    return successResponse(res, "Se ha eliminado el pasante", 200)
 }
+
+
+//Cambiarlos para el service
 
 const subirCV = async (req, res) => {
   const pasanteId = parseInt(req.user.id);
@@ -121,56 +58,32 @@ const subirCV = async (req, res) => {
 };
 
 const verPropioCV = async (req, res) => {
-  try {
-    const pasante = await prisma.pasante.findUnique({
-      where: { usuarioId: Number(req.user.id) },
-      select: { cv: true }
-    })
-
-    if (!pasante.cv){
-      return res.status(404).json({ mensaje: "Aun no subes tu CV" });
-    }
+    const pasante = await traerCV({ usuarioId: Number(req.user.id) })
 
     const CV = path.resolve(__dirname, '..', pasante.cv);
 
     return res.sendFile(CV);
-  } catch (error) {
-    return res.status(404).json({ mensaje: "no se encontro el CV", error });
-  }
 }
 
 const verCV = async (req, res) => {
-  try {
-    const pasante = await prisma.pasante.findUnique({
-      where: { id: Number(req.params.id) },
-      select: { cv: true }
-    })
-
-    if(!pasante.cv){
-      return res.status(404).json({ mensaje: "El pasante todavia no ha subido su CV"});
-    }
-
-    if (!pasante) {
-      return res.status(404).json({ mensaje: "No se encontró ningún pasante con ese ID" });
-    }
+    const pasante = await traerCV({ id: Number(req.params.id)})
 
     const CV = path.resolve(__dirname, '..', pasante.cv);
 
     return res.sendFile(CV);
-  } catch (error) {
-    return res.status(500).json({
-      mensaje: "Error al obtener el CV",
-      error: error.message,
-      stack: error.stack
-    });
-  }
+  // } catch (error) {
+  //   return res.status(500).json({
+  //     mensaje: "Error al obtener el CV",
+  //     error: error.message,
+  //     stack: error.stack
+  //   });
+  // }
 }
 
 
 module.exports = {
   obtenerPasantes,
   obtenerPasantesPorId,
-  // crearPasante,
   actualizarPasante,
   eliminarPasante,
   subirCV,

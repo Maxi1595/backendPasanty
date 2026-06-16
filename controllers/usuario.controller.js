@@ -2,7 +2,6 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const buscarUsuario = async (req, res) => {
-    try {
         const usuario = await prisma.usuario.findUnique({
             where: { id: Number(req.user.id) },
             select: {
@@ -11,9 +10,6 @@ const buscarUsuario = async (req, res) => {
             }
         })
 
-        if (usuario.rol === "invitado") {
-            return res.status(403).json({ mensaje: "Debe iniciar sesion primero" })
-        }
         let datos = { ...usuario };
 
         // Si el rol es empresa, incluye datos de la empresa
@@ -43,9 +39,6 @@ const buscarUsuario = async (req, res) => {
         }
         console.log(datos);
         return res.json(datos);
-    } catch (error) {
-        return res.status(400).json({ mensaje: "error al buscar a este usuario: " + error });
-    }
 }
 
 module.exports = {
