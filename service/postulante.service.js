@@ -1,14 +1,18 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const {PrismaSingleton} = require('../prisma/prisma.client');
+const NotFound = require('../handler/error.notfound');
 
 const traerPostulantes = async () => {
-    const postulaciones = await prisma.postulante.findMany();
+    const postulaciones = await PrismaSingleton.postulante.findMany();
+
+    if (postulaciones === null || !postulaciones) {
+        throw new NotFound("postulaciones no encontradas");
+    }
 
     return (postulaciones);
 }
 
 const traerPostulacionPorId = async (id) => {
-    const postulacion = await prisma.postulante.findUnique({
+    const postulacion = await PrismaSingleton.postulante.findUnique({
         where: { id: id },
         include: {
             pasante: {
@@ -30,11 +34,15 @@ const traerPostulacionPorId = async (id) => {
         }
     })
 
+    if (postulacion === null || !postulacion) {
+        throw new NotFound("postulacion no encontradas");
+    }
+
     return (postulacion);
 }
 
 const traerPostulacionPorVacante = async (empresa) => {
-    const postulaciones = await prisma.postulante.findMany({
+    const postulaciones = await PrismaSingleton.postulante.findMany({
         where: {
             vacante: {
                 empresaId: empresa.id
@@ -60,19 +68,27 @@ const traerPostulacionPorVacante = async (empresa) => {
         }
     })
 
+    if(postulaciones === null || !postulaciones){
+        throw new NotFound("postulaciones no encontradas");
+    }
+
     return postulaciones;
 }
 
 const traerPostulacionPorPasante = async (id) => {
-    const postulacion = await prisma.postulante.findMany({
+    const postulacion = await PrismaSingleton.postulante.findMany({
         where: { id: Number(id) }
     })
+
+    if(!postulacion || postulacion === null) {
+        throw new NotFound("postulacion no encontrada");
+    }
 
     return postulacion;
 }
 
 const traerPorEstado = async (pasante) => {
-    const postulacion = await prisma.postulante.findMany({
+    const postulacion = await PrismaSingleton.postulante.findMany({
         where: { pasanteId: pasante.id },
         include: {
             vacante: {
@@ -84,11 +100,15 @@ const traerPorEstado = async (pasante) => {
         }
     })
 
+    if (postulacion === null || !postulacion) {
+        throw new NotFound("postulacion no encontradas");
+    }
+
     return postulacion;
 }
 
 const postPostulacion = async (pasante, vacante) => {
-    const postulacion = await prisma.postulante.create({
+    const postulacion = await PrismaSingleton.postulante.create({
         data: {
             pasanteId: Number(pasante),
             vacanteId: Number(vacante)
@@ -98,17 +118,17 @@ const postPostulacion = async (pasante, vacante) => {
 }
 
 const borrarPostulacion = async (id) => {
-    const postulacion = await prisma.postulacion.create({
+    const postulacion = await PrismaSingleton.postulacion.create({
         where: { id: Number(id) }
     })
 }
 
 const cambiarEstado = async (id, estado) => {
-    const postulacion = await prisma.postulante.update({
+    const postulacion = await PrismaSingleton.postulante.update({
         where: { id: Number(id) },
         data: { estado: estado }
     })
-    
+
     return postulacion;
 }
 
