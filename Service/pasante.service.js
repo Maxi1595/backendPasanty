@@ -1,5 +1,9 @@
 const {PrismaSingleton} = require('../prisma/prisma.client');
+
+const {borrarUsuario} = require('../service/usuario.service');
+
 const NotFound = require('../handler/error.notfound');
+
 
 const traerPasantes = async () => {
     const pasantes = await PrismaSingleton.pasante.findMany({
@@ -59,12 +63,30 @@ const crearPasante = async (especialidad, id) => {
 }
 
 const borrarPasante = async (id) => {
-    const pasante = await PrismaSingleton.pasante.delete({
+    const pasante = await trearPasantePorId(id);
+
+    await borrarUsuario(pasante.usuarioId);
+
+    await PrismaSingleton.pasante.delete({
         where: { id: Number(id) }
     })
 
     return pasante;
 }
+
+const traerCV = async (id) => {
+    const CV = await PrismaSingleton.pasante.findUnique({
+        where:  id,
+        select: { cv: true }
+    })
+
+    if (CV === null || !CV){
+        throw new NotFound("No se encontro ningun CV");
+    }
+
+    return CV;
+}
+
 
 module.exports = {
     traerPasantes,
@@ -72,4 +94,6 @@ module.exports = {
     cambiarPasante,
     crearPasante,
     borrarPasante,
+    traerCV,
+
 }

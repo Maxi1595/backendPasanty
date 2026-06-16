@@ -55,13 +55,14 @@ const login = async (req, res) => {
     const tokenRefresh = await generarRefreshToken(usuario);
 
     return res.json({
-      user: {
-        username: usuario.nombre,
-        correo: usuario.correo,
-        rol: usuario.rol
-      },
-      tokenAccess,
-      tokenRefresh
+        user: {
+            id: usuario.id,
+            username: usuario.nombre,
+            correo: usuario.correo,
+            rol: usuario.rol
+        },
+        tokenAccess,
+        tokenRefresh
     });
 };
 
@@ -69,7 +70,7 @@ const refresh = async (req, res) => {
     const { tokenRefresh } = req.body;
 
     const token = jwt.verify(tokenRefresh, secretKey);
-    
+
     const user = await prisma.usuario.findFirst({ where: { id: token.id } })
 
     const tokenAccess = await generarAccessToken(user);

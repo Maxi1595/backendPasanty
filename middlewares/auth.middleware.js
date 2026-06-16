@@ -7,10 +7,12 @@ const UnauthorizedError = require("../handler/error.unauthorizederror");
 const Forbidden = require("../handler/error.forbidden");
 
 const verificarToken = (req, res, next) => {
+
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) {
-        throw new Fobidden();
+        throw new Forbidden();
     }
+
     jwt.verify(token, secretKey, (err, decoded) => {
         if (err) {
             next(new UnauthorizedError());
@@ -27,7 +29,7 @@ const verificarToken = (req, res, next) => {
             if(nivelRol == rol){ //se puede poner mayor o igual, por ahora permanece en igual
                 return next();
             } else {
-                next(new Fobidden());
+                next(new Forbidden());
             }
         }
     }
