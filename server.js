@@ -22,7 +22,10 @@ const limit = rateLimit({
 app.use(express.json());
 app.use(helmet());
 app.use(cors({
-  origin: 'http://localhost:5173' // aquí pones el origen de tu front
+  origin: [
+    'http://localhost:5173',
+    'https://frontend-pasanty-mjfh.vercel.app'
+  ]
 }));
 
 app.use('/api/', limit);
