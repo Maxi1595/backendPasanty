@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+const { successResponse } = require('../utils/response');
 const prisma = new PrismaClient();
 
 const crearVacantes = async (req, res) => {
@@ -18,7 +19,8 @@ const obtenerVacantes = async (req, res) => {
     const vacantes = await prisma.vacante.findMany({
         where: { estado: "abierto" }
     });
-    res.json(vacantes);
+
+    return successResponse(res, vacantes, 200);
 }
 
 const obtenerVacantePorId = async (req, res) => {

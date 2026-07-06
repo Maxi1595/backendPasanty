@@ -18,6 +18,7 @@ app.set('trust proxy', 1);
 
 const limit = rateLimit({
     windowMs: 60000,
+    max: 1000,
     message: {error: 'llego demasiadas request'}
 });
 app.use(express.json());

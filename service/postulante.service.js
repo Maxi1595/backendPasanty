@@ -89,7 +89,7 @@ const traerPostulacionPorPasante = async (id) => {
 
 const traerPorEstado = async (pasante) => {
     const postulacion = await PrismaSingleton.postulante.findMany({
-        where: { pasanteId: pasante.id },
+        where: { pasanteId: Number(pasante.id) },
         include: {
             vacante: {
                 select: {
@@ -103,7 +103,7 @@ const traerPorEstado = async (pasante) => {
     if (postulacion === null || !postulacion) {
         throw new NotFound("postulacion no encontradas");
     }
-
+console.log(postulacion);
     return postulacion;
 }
 
@@ -132,6 +132,29 @@ const cambiarEstado = async (id, estado) => {
     return postulacion;
 }
 
+const ConteoPostulacionesPasante = async (id) => {
+    const contador = await PrismaSingleton.postulante.groupBy({
+        by: ['estado'],
+        _count: true,
+        where: { pasanteId: Number(id) }
+    })
+
+    return contador;
+}
+
+// const ConteoPostulacionesEmpresa = async (empresa) => {
+//     const contador = await PrismaSingleton.postulante.groupBy({
+//         by: ['estado'],
+//         _count: true,
+//         where: { 
+//             vacante: {
+//                 empresaId: empresa.id,
+//                 estado: 'pendiente'
+//             }
+//         }
+//     })
+// }
+
 module.exports = {
     traerPostulantes,
     traerPostulacionPorId,
@@ -141,4 +164,5 @@ module.exports = {
     postPostulacion,
     borrarPostulacion,
     cambiarEstado,
+    ConteoPostulacionesPasante,
 }
