@@ -26,7 +26,7 @@ app.use(helmet());
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'https://frontend-pasanty-mjfh.vercel.app'
+    'https://frontend-pasanty-mjfh-pasanty.vercel.app'
   ]
 }));
 
