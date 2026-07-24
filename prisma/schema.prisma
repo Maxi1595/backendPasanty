@@ -36,6 +36,7 @@ model Pasante {
 
   postulante Postulante[]
   usuario    Usuario      @relation(fields: [usuarioId], references: [id])
+  perfilPasante PerfilPasante?
 }
 
 model Empresa {
@@ -48,6 +49,7 @@ model Empresa {
 
   vacantes Vacante[]
   usuario  Usuario   @relation(fields: [usuarioId], references: [id])
+  perfilEmpresa PerfilEmpresa?
 }
 
 model Vacante {
@@ -73,4 +75,18 @@ model Postulante {
   pasante Pasante @relation(fields: [pasanteId], references: [id])
 
   @@unique([vacanteId, pasanteId])
+}
+
+model PerfilPasante {
+  id           Int      @id @default(autoincrement())
+  pasanteId    Int      @unique
+  pasante      Pasante  @relation(fields: [pasanteId], references: [id])
+  descripcion  String?
+}
+
+model PerfilEmpresa {
+  id           Int      @id @default(autoincrement())
+  empresaId    Int      @unique
+  empresa      Empresa  @relation(fields: [empresaId], references: [id])
+  descripcion  String?
 }
