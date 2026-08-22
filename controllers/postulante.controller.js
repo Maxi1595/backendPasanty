@@ -31,7 +31,7 @@ const buscarPorPasante = async (req, res) => {
 
 const buscarPostulacionPorId = async (req, res) => {
 
-    const postulacion = await traerPostulacionPorId();
+    const postulacion = await traerPostulacionPorId(req.params.id);
 
     return successResponse(res, postulacion, 200);
 }
