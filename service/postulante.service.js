@@ -1,4 +1,4 @@
-const {PrismaSingleton} = require('../prisma/prisma.client');
+const { PrismaSingleton } = require('../prisma/prisma.client');
 const NotFound = require('../handler/error.notfound');
 
 const traerPostulantes = async () => {
@@ -13,7 +13,7 @@ const traerPostulantes = async () => {
 
 const traerPostulacionPorId = async (id) => {
     const postulacion = await PrismaSingleton.postulante.findUnique({
-        where: { id: id },
+        where: { id: Number(id) },
         include: {
             pasante: {
                 include: {
@@ -22,7 +22,8 @@ const traerPostulacionPorId = async (id) => {
                             nombre: true,
                             correo: true
                         }
-                    }
+                    },
+                    perfilPasante: true  // ← agregás esto
                 }
             },
             vacante: {
@@ -68,7 +69,7 @@ const traerPostulacionPorVacante = async (empresa) => {
         }
     })
 
-    if(postulaciones === null || !postulaciones){
+    if (postulaciones === null || !postulaciones) {
         throw new NotFound("postulaciones no encontradas");
     }
 
@@ -80,7 +81,7 @@ const traerPostulacionPorPasante = async (id) => {
         where: { id: Number(id) }
     })
 
-    if(!postulacion || postulacion === null) {
+    if (!postulacion || postulacion === null) {
         throw new NotFound("postulacion no encontrada");
     }
 
@@ -103,7 +104,7 @@ const traerPorEstado = async (pasante) => {
     if (postulacion === null || !postulacion) {
         throw new NotFound("postulacion no encontradas");
     }
-console.log(postulacion);
+    console.log(postulacion);
     return postulacion;
 }
 
