@@ -1,5 +1,6 @@
-const {PrismaSingleton} = require('../prisma/prisma.client');
+const { PrismaSingleton } = require('../prisma/prisma.client');
 const NotFound = require('../handler/error.notfound');
+const { CrearPerfilEmpresa } = require('./perfil.empresa.service');
 
 const traerEmpresas = async () => {
     const empresas = await PrismaSingleton.empresa.findMany();
@@ -16,7 +17,7 @@ const traerEmpresaPorId = async (id) => {
         where: { usuarioId: Number(id) }
     })
 
-    if (empresa === null || !empresa){
+    if (empresa === null || !empresa) {
         throw new NotFound("empresa no encontrada");
     }
 
@@ -32,6 +33,8 @@ const crearEmpresa = async (direccion, telefono, especialidad, id) => {
             usuarioId: id
         }
     })
+
+    await CrearPerfilEmpresa(empresa.id);
 
     return empresa;
 }

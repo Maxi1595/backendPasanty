@@ -1,14 +1,12 @@
 // controllers/pasante.controller.js
-const { PrismaClient } = require('@prisma/client');
 const { json, response } = require('express');
-const prisma = new PrismaClient();
 const bcrypt = require('bcrypt');
 require('dotenv').config();
 const secretKey = process.env.SECRET_KEY;
 
 const path = require('path');
 const { successResponse, errorResponse } = require('../utils/response');
-const { traerPasantes, trearPasantePorId, cambiarPasante, borrarPasante, traerCV } = require('../service/pasante.service.js');
+const { traerPasantes, trearPasantePorId, cambiarPasante, borrarPasante, traerCV, actualizarCV } = require('../service/pasante.service.js');
 
 
 const obtenerPasantes = async (req, res) => {
@@ -39,54 +37,32 @@ const eliminarPasante = async (req, res) => {
 //Cambiarlos para el service
 
 const subirCV = async (req, res) => {
-  const pasanteId = parseInt(req.user.id);
-  if (!req.file) {
-    return res.status(400).json({ mensaje: "No se subió ningún archivo" });
-  }
+    if (!req.file) throw new BadRequestError('No se subió ningún archivo');
 
-  try {
-    const rutaCV = req.file.path;
-    const pasanteActualizado = await prisma.pasante.update({
-      where: { usuarioId: pasanteId },
-      data: { cv: rutaCV }
-    });
+    const pasante = await actualizarCV(Number(req.user.id), req.file.path);
 
-    res.status(200).json({ mensaje: "CV subido exitosamente", pasante: pasanteActualizado });
-  } catch (error) {
-    res.status(500).json({ mensaje: "Error al subir el CV", error });
-  }
-};
+    return successResponse(res, pasante, 200);
+}
 
 const verPropioCV = async (req, res) => {
-    const pasante = await traerCV({ usuarioId: Number(req.user.id) })
-
-    const CV = path.resolve(__dirname, '..', pasante.cv);
-
-    return res.sendFile(CV);
+    const pasante = await traerCV({ usuarioId: Number(req.user.id) });
+    return successResponse(res, { url: pasante.cv }, 200);
 }
 
 const verCV = async (req, res) => {
-    const pasante = await traerCV({ id: Number(req.params.id)})
+    const pasante = await traerCV({ id: Number(req.params.id) })
+    const urlInline = pasante.cv.replace('/upload/', '/upload/fl_inline/');
+    return res.redirect(urlInline);
 
-    const CV = path.resolve(__dirname, '..', pasante.cv);
-
-    return res.sendFile(CV);
-  // } catch (error) {
-  //   return res.status(500).json({
-  //     mensaje: "Error al obtener el CV",
-  //     error: error.message,
-  //     stack: error.stack
-  //   });
-  // }
 }
 
 
 module.exports = {
-  obtenerPasantes,
-  obtenerPasantesPorId,
-  actualizarPasante,
-  eliminarPasante,
-  subirCV,
-  verPropioCV,
-  verCV,
+    obtenerPasantes,
+    obtenerPasantesPorId,
+    actualizarPasante,
+    eliminarPasante,
+    subirCV,
+    verPropioCV,
+    verCV,
 };

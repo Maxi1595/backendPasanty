@@ -1,6 +1,7 @@
-const {PrismaSingleton} = require('../prisma/prisma.client');
+const { PrismaSingleton } = require('../prisma/prisma.client');
 
-const {borrarUsuario} = require('../service/usuario.service');
+const { borrarUsuario } = require('../service/usuario.service');
+const { CrearPerfilPasante } = require('../service/perfil.pasante.service')
 
 const NotFound = require('../handler/error.notfound');
 
@@ -36,8 +37,20 @@ const trearPasantePorId = async (id) => {
         }
     });
 
-    if(pasante === null || !pasante){
+    if (pasante === null || !pasante) {
         throw new NotFound("postulacion no encontrada");
+    }
+
+    return pasante;
+}
+
+const traerPasantePorUsuarioId = async (id) => {
+    const pasante = await PrismaSingleton.pasante.findUnique({
+        where: { usuarioId: Number(id) }
+    })
+
+    if (pasante === null || !pasante) {
+        throw new NotFound("pasante no encontrada");
     }
 
     return pasante;
@@ -47,17 +60,21 @@ const cambiarPasante = async (id, data) => {
     const actualizacion = await PrismaSingleton.pasante.update({
         where: { id: Number(id) },
         data: data
-    }); 
+    });
     return actualizacion;
 }
 
-const crearPasante = async (especialidad, id) => {
+const crearPasante = async (especialidad, direccion, estado, id) => {
     const pasante = await PrismaSingleton.pasante.create({
         data: {
             especialidad: especialidad,
+            direccion: direccion,
+            estadoAcademico: estado,
             usuarioId: id
         }
     })
+
+    await CrearPerfilPasante(pasante.id)
 
     return pasante;
 }
@@ -76,13 +93,22 @@ const borrarPasante = async (id) => {
 
 const traerCV = async (id) => {
     const CV = await PrismaSingleton.pasante.findUnique({
-        where:  id,
+        where: id,
         select: { cv: true }
     })
 
-    if (CV === null || !CV){
+    if (CV === null || !CV) {
         throw new NotFound("No se encontro ningun CV");
     }
+
+    return CV;
+}
+
+const actualizarCV = async (id, url) => {
+    const CV = await PrismaSingleton.pasante.update({
+        where: { usuarioId: id },
+        data: { cv: url }
+    })
 
     return CV;
 }
@@ -91,9 +117,10 @@ const traerCV = async (id) => {
 module.exports = {
     traerPasantes,
     trearPasantePorId,
+    traerPasantePorUsuarioId,
     cambiarPasante,
     crearPasante,
     borrarPasante,
     traerCV,
-
+    actualizarCV,
 }

@@ -1,18 +1,15 @@
 const { PrismaClient } = require('@prisma/client');
 const { successResponse } = require('../utils/response');
+const { traerEmpresaPorId } = require('../service/empresa.service');
+const { crearVacante, traerVacantePorId } = require ('../service/vacante.service')
 const prisma = new PrismaClient();
 
 const crearVacantes = async (req, res) => {
-    const empresa = await prisma.empresa.findUnique({
-        where: { usuarioId: Number(req.user.id) }
-    })
-    const nuevaVacante = await prisma.vacante.create({
-        data: {
-            ...req.body,
-            empresaId: empresa.id,
-        }
-    });
-    res.status(201).json({ mensaje: "se creo un nuevo vacante", vacante: nuevaVacante });
+    const empresa = await traerEmpresaPorId(req.user.id);
+
+    const vacante = await crearVacante(empresa.id, req.body);
+
+    return successResponse(res, vacante, 200)
 }
 
 const obtenerVacantes = async (req, res) => {
@@ -24,10 +21,9 @@ const obtenerVacantes = async (req, res) => {
 }
 
 const obtenerVacantePorId = async (req, res) => {
-    const vacante = await prisma.vacante.findUnique({
-        where: { id: Number(req.params.id) }
-    });
-    res.json(vacante);
+    const vacante = await traerVacantePorId(req.params.id)
+
+    return successResponse(res, vacante, 200)
 }
 
 const modificarVacante = async (req, res) => {

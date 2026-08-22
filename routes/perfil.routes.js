@@ -1,15 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const { cambiarDescripcionPasante, verPerfilPasante } = require('../controllers/perfil.pasante.controller');
-const { cambiarDescripcionEmpresa, verPerfilEmpresa } = require('../controllers/perfil.empresa.controller');
+const { cambiarPerfilPasante, verPerfilPasante, verPerfilPasantePorId } = require('../controllers/perfil.pasante.controller');
+const { cambiarPerfilEmpresa, verPerfilEmpresa, verPerfilEmpresaPorParams } = require('../controllers/perfil.empresa.controller');
 const { verificarToken, verificarRol } = require('../middlewares/auth.middleware');
 
 //pasante
-router.get('/ver/pasante', verPerfilPasante, verificarToken, verificarRol(3));
-router.put('/cambiar/descripcion/pasante', cambiarDescripcionPasante, verificarToken, verificarRol(3));
+router.get('/ver/pasante', verificarToken, verificarRol(3), verPerfilPasante);
+router.get('/ver/pasante/:id', verificarToken, verificarRol(5), verPerfilPasantePorId)
+router.put('/cambiar/pasante', verificarToken, verificarRol(3), cambiarPerfilPasante);
 
 //empresa
-router.get('/ver/empresa', verPerfilEmpresa, verificarToken, verificarRol(5));
-router.put('/cambiar/descripcion/empresa', cambiarDescripcionEmpresa, verificarToken, verificarRol(5));
+router.get('/ver/empresa', verificarToken, verificarRol(5), verPerfilEmpresa);
+router.get('/ver/empresa/:id', verificarToken, verPerfilEmpresaPorParams);
+router.put('/cambiar/empresa', verificarToken, verificarRol(5), cambiarPerfilEmpresa);
 
 module.exports = router;

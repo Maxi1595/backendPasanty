@@ -13,16 +13,25 @@ const TraerPerfilPasante = async (id) => {
     return perfil
 }
 
-const ActualizarDescripcionPasante = async (id, data) => {
+const ActualizarPerfilPasante = async (id, data) => {
     const perfil = await PrismaSingleton.perfilPasante.update({
         where: {pasanteId : Number(id)},
-        data: {descripcion : data}
+        data: data
     })
 
     return perfil
 } 
 
+const CrearPerfilPasante = async (id) => {
+    const perfil = await PrismaSingleton.perfilPasante.create({
+        data: { pasanteId: id}
+    })
+    
+    return perfil
+}
+
 module.exports = {
     TraerPerfilPasante,
-    ActualizarDescripcionPasante,
+    ActualizarPerfilPasante,
+    CrearPerfilPasante,
 }

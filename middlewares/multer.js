@@ -1,26 +1,28 @@
 const multer = require('multer');
-const path = require('path');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('../utils/cloudinary'); // el archivo que ya creaste
 
-// Configuración del almacenamiento
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/'); // Carpeta donde se guardan los PDFs
-  },
-  filename: function (req, file, cb) {
-    const nombreArchivo = Date.now() + '-' + file.originalname;
-    cb(null, nombreArchivo);
-  }
+// Storage para CVs (PDF)
+const storagePDF = new CloudinaryStorage({
+    cloudinary,
+    params: {
+        folder: 'pasanty/cvs',
+        resource_type: 'auto',  // necesario para PDFs
+        allowed_formats: ['pdf'],
+    }
 });
 
-// Filtro para permitir solo PDFs
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype === 'application/pdf') {
-    cb(null, true);
-  } else {
-    cb(new Error('Solo se permiten archivos PDF'), false);
-  }
-};
+// Storage para imágenes de perfil
+const storageImagen = new CloudinaryStorage({
+    cloudinary,
+    params: {
+        folder: 'pasanty/fotos',
+        resource_type: 'image',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    }
+});
 
-const upload = multer({ storage, fileFilter });
+const uploadCV = multer({ storage: storagePDF });
+const uploadImagen = multer({ storage: storageImagen });
 
-module.exports = upload;
+module.exports = { uploadCV, uploadImagen };

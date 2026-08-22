@@ -12,6 +12,7 @@ const vacanteRoutes = require('./routes/vacante.routes');
 const postulanteRoutes = require('./routes/postulantes.routes');
 const usuarioRoutes = require('./routes/usuario.routes');
 const perfilRoutes = require('./routes/perfil.routes')
+const empresaRoutes = require('./routes/empresa.routes');
 
 dotenv.config();
 const app = express();
@@ -39,6 +40,7 @@ app.use('/api/vacante', vacanteRoutes);
 app.use('/api/postulantes', postulanteRoutes);
 app.use('/api/usuario', usuarioRoutes);
 app.use('/api/perfil', perfilRoutes);
+app.use('/api/empresa', empresaRoutes);
 
 app.use(errorHandler);
 
