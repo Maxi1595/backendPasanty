@@ -1,7 +1,7 @@
 // routes/pasante.routes.js
 const express = require('express');
 const router = express.Router();
-const upload = require("../middlewares/multer");
+const { uploadCV } = require("../middlewares/multer");
 const { obtenerPasantes, obtenerPasantesPorId, actualizarPasante, eliminarPasante, subirCV, verCV, verPropioCV } = require('../controllers/pasante.controller');
 const { verificarToken, verificarRol } = require('../middlewares/auth.middleware');
 
@@ -20,7 +20,7 @@ router.put('/:id', actualizarPasante);
 router.delete('/:id', eliminarPasante);
 
 //agregar autorizacion de rol
-router.post('/subir-cv',verificarToken, upload.single('cv'), subirCV);
+router.post('/subir-cv',verificarToken, uploadCV.single('cv'), subirCV);
 
 router.get('/propio-cv', verificarToken, verPropioCV);
 

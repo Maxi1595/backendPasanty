@@ -4,7 +4,9 @@
         nombre: z.string().trim().min(1, {message: 'El nombre es obligatorio'}),
         correo: z.email({message: 'correo invalido'}),
         contrasena: z.string().min(1, {message: 'La contraseña es obligatoria'}).trim(),
-        especialidad: z.string().trim().min(1, {message: 'La especialidad es obligatoria'})
+        especialidad: z.string().trim().min(1, {message: 'La especialidad es obligatoria'}),
+        direccion: z.string().trim().min(5, {message: 'debe colocar la direccion'}),
+        estadoAcademico: z.string().trim()
     });
     const schemaRegistrarEmpresa = z.object({
         nombre: z.string().trim().min(1, {message: 'El nombre es obligatorio'}),

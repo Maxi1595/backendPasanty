@@ -4,23 +4,26 @@ const prisma = new PrismaClient();
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const secretKey = process.env.SECRET_KEY;
-const { generarAccessToken, generarRefreshToken, crearUsuario } = require('../service/auth.service');
+const { generarAccessToken, generarRefreshToken, crearUsuario, verificarCuenta } = require('../service/auth.service');
 const { crearEmpresa } = require('../service/empresa.service');
 const { crearPasante } = require('../service/pasante.service');
 const { successResponse, errorResponse } = require('../utils/response');
+const { emailVerificacion } = require("../nodemailer/message");
 
 // Registro
 
 const registrarPasante = async (req, res) => {
-    const { nombre, contrasena, correo, especialidad } = req.body;
+    const { nombre, contrasena, correo, especialidad, direccion, estadoAcademico } = req.body;
 
     const existe = await prisma.usuario.findUnique({ where: { correo } });
 
     const hashedPassword = await bcrypt.hash(contrasena, 10);
-
+    
     const usuario = await crearUsuario(nombre, correo, hashedPassword, 3);
 
-    const nuevoPasante = await crearPasante(especialidad, usuario.id);
+    emailVerificacion(correo, usuario.token);
+
+    const nuevoPasante = await crearPasante(especialidad, direccion, estadoAcademico, usuario.id);
 
     return successResponse(res, nuevoPasante, 201);
 };
@@ -35,6 +38,8 @@ const registrarEmpresa = async (req, res) => {
     const hashedPassword = await bcrypt.hash(contrasena, 10);
 
     const usuario = await crearUsuario(nombre, correo, hashedPassword, 5);
+
+    emailVerificacion(correo, usuario.token);
 
     const nuevaEmpresa = await crearEmpresa(direccion, telefono, especialidad, usuario.id)
 
@@ -78,4 +83,16 @@ const refresh = async (req, res) => {
     return res.status(200).json({ tokenAccess });
 }
 
-module.exports = { registrarPasante, registrarEmpresa, login, refresh };
+const verificador = async (req, res) => {
+    const cuenta = await verificarCuenta(req.params.email ,req.params.token)
+
+    return successResponse(res, cuenta, 200);
+}
+
+module.exports = { 
+    registrarPasante, 
+    registrarEmpresa, 
+    login, 
+    refresh,
+    verificador
+};

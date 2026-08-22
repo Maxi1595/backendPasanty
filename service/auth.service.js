@@ -1,9 +1,11 @@
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 require('dotenv').config
 const secretKey = process.env.SECRET_KEY;
 const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { PrismaSingleton } = require('../prisma/prisma.client');
+const { BadRequest } = require("../handler/error.badrequest")
 
 const generarAccessToken = async (usuario) => {
     const token = jwt.sign({
@@ -25,13 +27,37 @@ const generarRefreshToken = async (tokenAnt) => {
     return tokenNuevo;
 }
 
+const generarVerificadoToken = async () => {
+    const tokenString = crypto.randomBytes(32).toString('hex');
+
+    return tokenString;
+}
+
 const crearUsuario = async (nombre, correo, contrasena, rol) => {
-    const usuario = await prisma.usuario.create({
+    const token = await generarVerificadoToken();
+
+    const usuario = await PrismaSingleton.usuario.create({
         data: {
             nombre: nombre,
             correo: correo,
             contrasena: contrasena,
-            rol: rol
+            rol: rol,
+            token: token
+        }
+    })
+
+    return usuario;
+}
+
+const verificarCuenta = async (email, token) => {
+    const usuario = await PrismaSingleton.usuario.update({
+        where: { 
+            correo: email,
+            token: token
+         },
+        data: { 
+            verificado: true,
+            token: null
         }
     })
 
@@ -41,5 +67,7 @@ const crearUsuario = async (nombre, correo, contrasena, rol) => {
 module.exports = { 
     generarAccessToken,
     generarRefreshToken,
-    crearUsuario
+    generarVerificadoToken,
+    crearUsuario,
+    verificarCuenta
 }
