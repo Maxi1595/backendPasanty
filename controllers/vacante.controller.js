@@ -1,7 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const { successResponse } = require('../utils/response');
 const { traerEmpresaPorId } = require('../service/empresa.service');
-const { crearVacante, traerVacantePorId } = require ('../service/vacante.service')
+const { crearVacante, traerVacantePorId, traerTodasVacantePorId } = require ('../service/vacante.service')
 const prisma = new PrismaClient();
 
 const crearVacantes = async (req, res) => {
@@ -20,11 +20,28 @@ const obtenerVacantes = async (req, res) => {
     return successResponse(res, vacantes, 200);
 }
 
-const obtenerVacantePorId = async (req, res) => {
+const obtenerVacantePorParamsId = async (req, res) => {
     const vacante = await traerVacantePorId(req.params.id)
 
     return successResponse(res, vacante, 200)
 }
+
+const obtenerVacantePorId = async (req, res) => {
+    const empresa = await traerEmpresaPorId(req.user.id);
+    
+    const vacante = await traerTodasVacantePorId(empresa.id)
+
+    return successResponse(res, vacante, 200)
+}
+
+const obtenerVacantesParamsIdUsuario = async (req, res) => {
+    const empresa = await traerEmpresaPorId(req.params.id);
+    
+    const vacante = await traerTodasVacantePorId(empresa.id)
+
+    return successResponse(res, vacante, 200)
+}
+
 
 const modificarVacante = async (req, res) => {
     const vacante = await prisma.vacante.update({
@@ -62,7 +79,9 @@ const eliminarVacante = async (req, res) => {
 module.exports = {
     crearVacantes,
     obtenerVacantes,
+    obtenerVacantePorParamsId,
     obtenerVacantePorId,
+    obtenerVacantesParamsIdUsuario,
     modificarVacante,
     cambiarEstadoVacante, //no se ha agregado
     eliminarVacante,

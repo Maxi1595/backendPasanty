@@ -13,6 +13,11 @@ const traerPasantes = async () => {
                 select: {
                     nombre: true
                 }
+            },
+            perfilPasante: {
+                select: {
+                    tags: true
+                }
             }
         }
     })

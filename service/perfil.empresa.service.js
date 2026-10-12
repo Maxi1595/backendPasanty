@@ -24,8 +24,11 @@ const ActualizarPerfilEmpresa = async (id, data) => {
 } 
 
 const CrearPerfilEmpresa = async (id) => {
-    const perfil = await PrismaSingleton.perfilEmpresa.create({
-        data: { empresaId: id}
+    const perfil = await PrismaSingleton.perfilEmpresa.upsert({
+        where: { empresaId: Number(id) },
+        update: {},
+        create: { empresaId: Number(id) }
+
     })
     
     return perfil

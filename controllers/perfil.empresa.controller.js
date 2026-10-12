@@ -12,6 +12,7 @@ const verPerfilEmpresa = async (req, res) => {
 }
 
 const verPerfilEmpresaPorParams = async (req, res) => {
+    console.log(req.params.id)
     const empresa = await traerEmpresaPorId(req.params.id);
 
     const perfil = await TraerPerfilEmpresa(empresa.id);
@@ -27,7 +28,7 @@ const cambiarPerfilEmpresa = async (req, res) => {
     return successResponse(res, perfil, 200);
 }
 
-const fotoBanner = async (req, res) => {
+const cambiarFotoBanner = async (req, res) => {
     const empresa = await traerEmpresaPorId(req.user.id);
 
     const perfil = await CambiarBanner(empresa.id, req.file.path);
@@ -39,4 +40,5 @@ module.exports = {
     verPerfilEmpresa,
     verPerfilEmpresaPorParams,
     cambiarPerfilEmpresa,
+    cambiarFotoBanner,
 }

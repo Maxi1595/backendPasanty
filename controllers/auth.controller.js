@@ -4,11 +4,13 @@ const prisma = new PrismaClient();
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const secretKey = process.env.SECRET_KEY;
-const { generarAccessToken, generarRefreshToken, crearUsuario, verificarCuenta } = require('../service/auth.service');
+const { generarAccessToken, generarRefreshToken, crearUsuario, verificarCuenta, prueba, comprobarVerificacion } = require('../service/auth.service');
 const { crearEmpresa } = require('../service/empresa.service');
 const { crearPasante } = require('../service/pasante.service');
 const { successResponse, errorResponse } = require('../utils/response');
 const { emailVerificacion } = require("../nodemailer/message");
+const { CrearPerfilEmpresa } = require('../service/perfil.empresa.service');
+const { CrearPerfilPasante } = require('../service/perfil.pasante.service');
 
 // Registro
 
@@ -16,14 +18,17 @@ const registrarPasante = async (req, res) => {
     const { nombre, contrasena, correo, especialidad, direccion, estadoAcademico } = req.body;
 
     const existe = await prisma.usuario.findUnique({ where: { correo } });
-
-    const hashedPassword = await bcrypt.hash(contrasena, 10);
+    if (existe) return res.status(400).json({ mensaje: 'Ya existe una cuenta con ese correo' });
     
+    const hashedPassword = await bcrypt.hash(contrasena, 10);
+
     const usuario = await crearUsuario(nombre, correo, hashedPassword, 3);
 
     emailVerificacion(correo, usuario.token);
 
     const nuevoPasante = await crearPasante(especialidad, direccion, estadoAcademico, usuario.id);
+
+    await CrearPerfilPasante(nuevoPasante.id);
 
     return successResponse(res, nuevoPasante, 201);
 };
@@ -43,6 +48,8 @@ const registrarEmpresa = async (req, res) => {
 
     const nuevaEmpresa = await crearEmpresa(direccion, telefono, especialidad, usuario.id)
 
+    await CrearPerfilEmpresa(nuevaEmpresa.id);
+
     return successResponse(res, nuevaEmpresa, 201);
 };
 
@@ -55,6 +62,8 @@ const login = async (req, res) => {
 
     const contrasenaValida = await bcrypt.compare(contrasena, usuario.contrasena);
     if (!contrasenaValida) return res.status(401).json({ mensaje: 'Contraseña incorrecta' });
+    
+    await comprobarVerificacion(usuario.id)
 
     const tokenAccess = await generarAccessToken(usuario);
     const tokenRefresh = await generarRefreshToken(usuario);
@@ -76,7 +85,7 @@ const refresh = async (req, res) => {
 
     const token = jwt.verify(tokenRefresh, secretKey);
 
-    const user = await prisma.usuario.findFirst({ where: { id: token.id } })
+    const user = await comprobarVerificacion(token.id);
 
     const tokenAccess = await generarAccessToken(user);
 
@@ -84,15 +93,15 @@ const refresh = async (req, res) => {
 }
 
 const verificador = async (req, res) => {
-    const cuenta = await verificarCuenta(req.params.email ,req.params.token)
+    const cuenta = await verificarCuenta(req.params.email, req.params.token)
 
     return successResponse(res, cuenta, 200);
 }
 
-module.exports = { 
-    registrarPasante, 
-    registrarEmpresa, 
-    login, 
+module.exports = {
+    registrarPasante,
+    registrarEmpresa,
+    login,
     refresh,
-    verificador
+    verificador,
 };
