@@ -50,10 +50,8 @@ const verPropioCV = async (req, res) => {
 }
 
 const verCV = async (req, res) => {
-    const pasante = await traerCV({ id: Number(req.params.id) })
-    const urlInline = pasante.cv.replace('/upload/', '/upload/fl_inline/');
-    return res.redirect(urlInline);
-
+    const pasante = await traerCV({ id: Number(req.params.id) });
+    return successResponse(res, { url: pasante.cv }, 200);
 }
 
 

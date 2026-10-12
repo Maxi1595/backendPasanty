@@ -11,14 +11,14 @@ const buscarUsuario = async (req, res) => {
     let datos = { ...usuario };
 
     // Si el rol es empresa, incluye datos de la empresa
-    if (usuario.rol === "5") {
-        const empresa = await traerEmpresaPorId(usuario.id);
+    if (req.user.rol === 5) {
+        const empresa = await traerEmpresaPorId(req.user.id);
         datos = { ...usuario, empresa };
     }
 
     // Si el rol es pasante, incluye datos del pasante
-    if (usuario.rol === "3") {
-        const pasante = await traerPasantePorUsuarioId(usuario.id)
+    if (req.user.rol === 3) {
+        const pasante = await traerPasantePorUsuarioId(req.user.id)
         datos = { ...usuario, pasante };
     }
 

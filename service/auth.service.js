@@ -5,14 +5,16 @@ require('dotenv').config
 const secretKey = process.env.SECRET_KEY;
 const { PrismaClient } = require('@prisma/client');
 const { PrismaSingleton } = require('../prisma/prisma.client');
-const { BadRequest } = require("../handler/error.badrequest")
+const { BadRequest } = require("../handler/error.badrequest");
+const NotFound = require('../handler/error.notfound');
+const UnauthorizedError = require('../handler/error.unauthorizederror');
 
 const generarAccessToken = async (usuario) => {
     const token = jwt.sign({
         username: usuario.correo, //borrar?
         id: usuario.id,
         rol: usuario.rol
-    }, secretKey, { expiresIn: '30m' });
+    }, secretKey, { expiresIn: '1m' });
 
     return token;
 }
@@ -22,7 +24,7 @@ const generarRefreshToken = async (tokenAnt) => {
     const tokenNuevo = jwt.sign({
         id: tokenAnt.id,
         //ahi que agregar un campo que sea para poder validar otro token mediante la BD
-    }, secretKey, { expiresIn: '7d' }) //lo tengo que cambiar por 2 dias
+    }, secretKey, { expiresIn: '2d' }) //lo tengo que cambiar por 2 dias
 
     return tokenNuevo;
 }
@@ -64,10 +66,26 @@ const verificarCuenta = async (email, token) => {
     return usuario;
 }
 
+const comprobarVerificacion = async (id) => {
+    const usuario = await PrismaSingleton.usuario.findUnique({
+        where: { id: Number(id) }
+    })
+    if(!usuario){
+        throw new NotFound("usuario no encontrado");
+    }
+
+    if(usuario.verificado === false){
+        throw new UnauthorizedError("cuenta no verificada");
+    }
+    
+    return usuario;
+}
+
 module.exports = { 
     generarAccessToken,
     generarRefreshToken,
     generarVerificadoToken,
     crearUsuario,
-    verificarCuenta
+    verificarCuenta,
+    comprobarVerificacion,
 }

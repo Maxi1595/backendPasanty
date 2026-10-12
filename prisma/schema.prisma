@@ -13,7 +13,7 @@ model Usuario {
   nombre      String
   correo      String  @unique
   contrasena  String
-  verificado  Boolean? @default(false)
+  verificado  Boolean @default(false)
   token       String?
   foto        String?
   rol         Int
@@ -48,7 +48,7 @@ model Empresa {
   id              Int      @id @default(autoincrement())
   usuarioId       Int      @unique
   direccion       String   @unique
-  telefono        String
+  telefono        String?
   especialidad    String
   creadoEn        DateTime @default(now())
 
@@ -60,8 +60,12 @@ model Empresa {
 model Vacante {
   id            Int      @id @default(autoincrement())
   titulo        String
-  puesto        String?
-  remuneracion  Boolean? @default(false)
+  puesto        String
+  direccion     String
+  modalidad     String
+  jornada       String
+  anioAcademico String
+  remuneracion  Boolean @default(false)
   descripcion   String
   empresaId     Int
   empresa       Empresa  @relation(fields: [empresaId], references: [id])
@@ -92,12 +96,9 @@ model PerfilPasante {
   linkedin              String?
   portfolio             String?
   habilidades           String?
-  seccion1Titulo        String?
-  seccion1Contenido     String?
-  seccion2Titulo        String?
-  seccion2Contenido     String?
-  seccion3Titulo        String?
-  seccion3Contenido     String?
+  tags                  String?
+  proyectos             String?
+  formacion             String?
 }
 
 model PerfilEmpresa {
@@ -106,9 +107,6 @@ model PerfilEmpresa {
   empresa            Empresa  @relation(fields: [empresaId], references: [id])
   banner             String?
   descripcion        String?
-  historia           String?
-  mision             String?
-  vision             String?
   beneficios         String?
   sitioWeb           String?
   linkedin           String?

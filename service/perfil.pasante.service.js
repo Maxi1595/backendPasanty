@@ -23,8 +23,10 @@ const ActualizarPerfilPasante = async (id, data) => {
 } 
 
 const CrearPerfilPasante = async (id) => {
-    const perfil = await PrismaSingleton.perfilPasante.create({
-        data: { pasanteId: id}
+    const perfil = await PrismaSingleton.perfilPasante.upsert({
+        where: { pasanteId: Number(id) },
+        update: {},
+        create: { pasanteId: Number(id) }
     })
     
     return perfil

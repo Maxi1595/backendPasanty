@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { registrarPasante, registrarEmpresa, login, refresh, verificador } = require('../controllers/auth.controller');
+const { registrarPasante, registrarEmpresa, login, refresh, verificador, probando } = require('../controllers/auth.controller');
 const { validation } = require('../middlewares/valideta.middleware');
 const { schemaLogin } = require('../schemas/login.schema');
 const { schemaRegistrarEmpresa, schemaRegistrarPasante } = require('../schemas/registrar.schema');
@@ -10,6 +10,6 @@ router.post('/registro/empresa', validation(schemaRegistrarEmpresa), registrarEm
 router.post('/login', validation(schemaLogin), login);
 router.post('/refreshToken', refresh);
 
-router.get('/verificar/:email/:token', verificador)
+router.get('/verificar/:email/:token', verificador);
 
 module.exports = router;
