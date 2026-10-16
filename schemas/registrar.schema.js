@@ -9,16 +9,20 @@ const schemaRegistrarPasante = z.object({
     }).trim().min(1, {
         message: 'La especialidad es obligatoria'
     }),
-    direccion: z.string().trim().min(5, { message: 'debe colocar la direccion' }),
+    direccion: z.string().trim().min(3, { message: 'debe colocar la direccion' }),
     estadoAcademico: z.string().trim()
 });
 const schemaRegistrarEmpresa = z.object({
     nombre: z.string().trim().min(1, { message: 'El nombre es obligatorio' }),
     correo: z.email({ message: 'correo invalido' }),
     contrasena: z.string().min(8, { message: 'La contraseña es obligatoria que tenga 8 caracteres' }).trim(),
-    direccion: z.string().trim().min(1, { message: 'la direccion es obligatoria' }),
+    direccion: z.string().trim().min(3, { message: 'la direccion es obligatoria' }),
     telefono: z.string().trim().optional().or(z.literal('')),
-    especialidad: z.string().trim().min(1, { message: 'La especialidad es obligatoria' })
+    especialidad: z.string({
+        error: 'La especialidad es obligatoria'
+    }).trim().min(1, {
+        message: 'La especialidad es obligatoria'
+    }),
 });
 
 module.exports = { schemaRegistrarPasante, schemaRegistrarEmpresa }
